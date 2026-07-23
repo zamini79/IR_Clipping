@@ -61,7 +61,18 @@ export async function POST(req: Request) {
   if (req.headers.get("x-cron-secret") !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const supabase = createServiceClient();
+  // Observability: a missing/misconfigured env (e.g. SUPABASE_SERVICE_ROLE_KEY)
+  // makes createServiceClient throw. Catch it so the caller gets a clear JSON
+  // error + 500 instead of an opaque empty 500 (which only shows in server logs).
+  let supabase: ReturnType<typeof createServiceClient>;
+  try {
+    supabase = createServiceClient();
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : String(e) },
+      { status: 500 }
+    );
+  }
   const errors: string[] = [];
 
   async function insertItem(it: CollectedItem) {
