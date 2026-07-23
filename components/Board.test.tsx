@@ -44,5 +44,24 @@ describe("Board", () => {
     await userEvent.click(screen.getByText("disclosure 제목 0"));
     const dialog = screen.getByText("첨부파일").closest("div")!.parentElement!;
     expect(within(dialog).getByText("첨부파일 없음")).toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByText("첨부파일")).not.toBeInTheDocument();
+  });
+
+  it("switching tabs resets page to 0", async () => {
+    render(<Board data={data} updated="x" />);
+
+    // Go to page 2 of disclosure: page 1 holds titles 0..5, page 2 holds 6..7.
+    await userEvent.click(screen.getByText("2"));
+    expect(screen.getByText("disclosure 제목 6")).toBeInTheDocument();
+    expect(screen.queryByText("disclosure 제목 0")).not.toBeInTheDocument();
+
+    // Switch away and back; the tab handler should reset page to 0.
+    await userEvent.click(screen.getByText("FnGuide"));
+    await userEvent.click(screen.getByText("공시법규 규정"));
+
+    expect(screen.getByText("disclosure 제목 0")).toBeInTheDocument();
+    expect(screen.queryByText("disclosure 제목 6")).not.toBeInTheDocument();
   });
 });
