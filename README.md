@@ -173,3 +173,38 @@ npm run dev                  # http://localhost:3000
 2. Vercel에서 레포 import.
 3. 환경변수 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` 설정.
 4. 배포. push 시 자동 재배포.
+
+## Phase 2 운영 (수집기 · 알림 · 스케줄)
+
+Phase 2부터는 7개 게시판(금융감독원 보도자료/규정예고, 금융위 보도자료, 공정위 보도자료,
+코스콤 공시업무해설/법규, 금융감독원 가이드라인)을 매시간 자동 수집해 `clippings`/`clipping_files`
+테이블에 적재하고, 신규 항목이 있으면 담당자에게 다이제스트 메일을 보냅니다.
+
+**수집 주기**: GitHub Actions `.github/workflows/collect.yml` — `cron: "0 * * * *"`(매시간 정각) +
+`workflow_dispatch`(수동 실행 가능). 워크플로는 `POST $APP_COLLECT_URL`을
+`x-cron-secret: $CRON_SECRET` 헤더와 함께 호출하고 HTTP 200이 아니면 실패 처리합니다.
+
+**수동 트리거** (로컬/운영 확인용):
+```bash
+curl -X POST "https://<your-app>.vercel.app/api/collect" \
+  -H "x-cron-secret: $CRON_SECRET"
+```
+
+**환경변수** (`.env.example` 참고, Vercel 프로젝트 설정에도 동일하게 등록):
+- `CRON_SECRET` — `/api/collect` 인증용 임의 문자열. GitHub Actions Secrets에도 동일 값 등록.
+- `GMAIL_USER` — 다이제스트 발신 Gmail 계정.
+- `GMAIL_APP_PASSWORD` — 2단계 인증 활성화 후 발급한 앱 비밀번호(일반 비밀번호 아님).
+- `SUPABASE_SERVICE_ROLE_KEY` — 이미 존재(시드용); Phase 2 수집기/다운로드 route가 서버에서만 사용.
+
+**Supabase 준비**:
+1. `supabase/migrations/0002_phase2.sql` 실행(board/source_ref/notified_at 컬럼, `alert_recipients` 테이블 등).
+2. Storage에 **비공개** 버킷 `clipping-files` 생성(공개 정책 없음 — service_role만 업로드/서명 URL 발급).
+3. `alert_recipients` 테이블에 다이제스트 수신 담당자 이메일을 `insert`(예: `insert into alert_recipients (email) values ('ir-team@example.com')`).
+
+**GitHub Actions Secrets** (레포 Settings → Secrets and variables → Actions):
+- `APP_COLLECT_URL` — 배포된 `/api/collect` 전체 URL (예: `https://<your-app>.vercel.app/api/collect`).
+- `CRON_SECRET` — Vercel 환경변수와 동일한 값.
+
+**첨부파일 다운로드**: 상세 모달의 "다운로드" 링크는 `/api/download?path=<storagePath>`를 호출해
+Supabase `createSignedUrl`(60초 유효)로 리다이렉트합니다. Storage에 복제되지 않은 첨부(외부 URL만
+있는 경우)는 원문 링크로 바로 연결됩니다.
