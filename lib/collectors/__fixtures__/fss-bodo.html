@@ -1,0 +1,2082 @@
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+<head>
+	<meta charset="UTF-8">
+  	<meta name="viewport" content="width=device-width, user-scaleable=no">
+  	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  	<title>기업공시 길라잡이</title>
+  	<!-- Start // load library resource -->
+  	<link rel="stylesheet" href="/info/resource/css/nanumgothic.css">
+  	<!-- <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic:regular,700,800" rel="preload"> -->
+  	<link rel="stylesheet" href="/info/resource/css/bootstrap.min.css">
+  	<link rel="stylesheet" href="/info/resource/css/slick.css">
+  	<script src="/info/resource/js/jquery-3.3.1.min.js"></script>
+  	<script src="/info/resource/js/bootstrap.bundle.min.js"></script>
+  	<script src="/info/resource/js/slick.min.js"></script>
+  	<script src="/info/resource/js/jquery.scrollTo.min.js"></script>
+  	<script src="/info/resource/js/jquery.word-break-keep-all.min.js"></script>
+  	<!-- <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.5.18/webfont.js" async></script> -->
+  	<!-- End // load library resource*/ -->
+  	<!-- Start // load custom resource -->
+  	<link rel="stylesheet" href="/info/css/dart-guide.css?ver=4">
+  	<script src="/info/js/dart-guide.js?ver=2"></script>
+  	<script src="/js/detectmobilebrowser.js"></script>
+	<!-- <script src="/info/js/dart-attach.js"></script> -->
+  	<!-- End // load custom resource*/ -->
+
+  	<script type="text/javascript" language="javascript">
+  	$(document).ready(function(){
+  		setTimeout("linkMover()", 100);
+  		
+  		$(".faqCont dt").click(function() {
+
+  			if (!$(this).next().hasClass("show")) {
+  				$(".faqCont dt").removeClass("txtCB");
+  				$(".faqCont dd").removeClass("show");
+  				$(this).addClass("txtCB");
+  				$(this).next().addClass("show");
+  			} else {
+  				$(".faqCont dt").removeClass("txtCB");
+  				$(".faqCont dd").removeClass("show");
+  			}
+
+  		});
+  		
+  		$(".qna-table .question").click(function() {
+  			
+  			if($(this).hasClass("show")) return;
+  			
+  			/*
+  			// 제목 클릭하면 전체 닫기
+  			if (!$(this).next().hasClass("show")) {
+  				$(".qna-table .answer").removeClass("show");
+  				$(this).next().addClass("show");
+  			} else {
+  				$(".qna-table .answer").removeClass("show");
+  			}
+  			*/
+  			
+  			// 제목 클릭하면 현재 질문만 닫기
+  			if (!$(this).next().hasClass("show")) {
+  				$(this).next().addClass("show");
+  			} else {
+  				$(this).next().removeClass("show");
+  			}
+  			
+			if (window.innerWidth <= 992) {
+				$("html, body").animate({scrollTop : 110}, 0);
+				$("html, body").animate({scrollTop : $(this).offset().top - 110}, 0);
+			} else {
+				$(".wrapper").animate({scrollTop : 110}, 0);
+				$(".wrapper").animate({scrollTop : $(this).offset().top - 110}, 0);
+			}
+  		});
+  		
+  		if(isMobile()) {
+  			$('#bookMark').hide();
+  			$('#bookMarkImg').hide();
+  		}
+  	});
+  	
+	function searchQna() {
+		var keyword = $("#keyword").val();
+		
+		if (keyword == null || keyword == "" || keyword.replace(/ /gi, '') == "") {
+			searchQna_clear();
+			return;
+		}
+		
+		//초기화
+		searchQna_clear();
+		
+		//찾기, 하이라이트, 스크롤이동
+		//검색어가 포함되지 않는 질문 지우기
+		$(".qna-table .answer").each(function() {
+			if ($(this).is(":contains(" + keyword + ")")) {
+				//$(this).addClass("show");
+			} else {
+				$(this).prev().hide();
+			}
+			
+		});
+		//검색어가 찾기
+		var keywords = $(".qna-table .answer").contents().find(":contains('" + keyword +"')").filter(function(i, item) {
+			return $(item).find(":contains('" + keyword +"')").length === 0;
+		});
+		//하이라이트
+		if(keywords.length > 0) {
+			for(var i = 0; i < keywords.length;i++) {
+				var words = keywords.eq(i).text();
+				var wordIndexOf = words.toLowerCase().indexOf(keyword.toLowerCase());
+				var wordPointer = 0;
+				var str = "";
+				for(;wordIndexOf > -1;wordIndexOf = words.toLowerCase().indexOf(keyword.toLowerCase(), wordIndexOf+keyword.length)) {
+					str += words.substring(wordPointer, wordIndexOf);
+					str += '<span class="highlight">' + words.substring(wordIndexOf, wordIndexOf+ keyword.length) + '</span>';
+					wordPointer = wordIndexOf+keyword.length;
+				}
+				str += words.substring(wordPointer, words.length);
+				keywords.eq(i).html(str);
+			}
+			/*
+			//스크롤이동
+			var obj = $(".qna-table .answer").contents().find('.highlight').first();
+			if (window.innerWidth <= 992) {
+				$("html, body").animate({scrollTop : 110}, 0);
+				$("html, body").animate({scrollTop : $(obj).offset().top - 110}, 0);
+			} else {
+				$(".wrapper").animate({scrollTop : 110}, 0);
+				$(".wrapper").animate({scrollTop : $(obj).offset().top - 110}, 0);
+			}
+			*/
+		} else {
+			alert("일치하는 내용[" + keyword + "]이 없습니다.");
+			return;
+		}
+	}
+	
+	function searchQna_clear() {
+		//전체 질문 보이기
+		$(".qna-table .question").show();
+		//전체 답변 지우기
+		$(".qna-table .answer").removeClass("show");
+		//전체 하이라이트 지우기
+		var highlightCls = $(".qna-table .answer").contents().find('.highlight');
+		for(var i=0; i<highlightCls.length;i++) {
+			var parent = highlightCls.eq(i).parent();
+			parent.text(parent.text());
+		}
+	}
+
+    // send to SNS
+    function toSNS(sns, menu) {
+    	var strTitle = "";
+    	var strURL =window.location.href;
+
+    	if(menu == "110"){
+    		strTitle = "대표이사ㆍ신고담당이사 공시서류 확인 및 서명";
+    	} else if(menu == "120"){
+    		strTitle = "대표이사ㆍ신고담당이사 이사의 경영진단 및 분석의견";
+    	} else if(menu == "210"){
+    		strTitle = "공시실무자 정기 보고서";
+    	} else if(menu == "220"){
+    		strTitle = "공시실무자 주요사항 보고서";
+    	} else if(menu == "230"){
+    		strTitle = "공시실무자 발행공시";
+    	} else if(menu == "240"){
+    		strTitle = "공시실무자 합병";
+    	} else if(menu == "310"){
+    		strTitle = "지분공시의무자 대량 보유상황 보고";
+    	} else if(menu == "320"){
+    		strTitle = "지분공시의무자 임원 소유상황 보고";
+    	} else if(menu == "330"){
+    		strTitle = "지분공시의무자 단기매매차익 반환";
+    	} else if(menu == "340"){
+    		strTitle = "임원 등의 특정증권등 거래계획 보고";
+    	} else if(menu == "400"){
+    		strTitle = "공시업무스케쥴";
+    	} else if(menu == "410"){
+    		strTitle = "공시업무안내 공시업무 스케쥴";
+    	} else if(menu == "420"){
+    		strTitle = "공시업무안내 공시업무 스케쥴";
+    	} else if(menu == "500"){
+    		strTitle = "공시업무안내 공시의무를 미이행시 어떤 일이 일어날까요?";
+    	} else if(menu == "510"){
+    		strTitle = "공시업무안내 전자공시절차";
+    	} else if(menu == "520"){
+    		strTitle = "공시업무안내 공시관련부서안내";
+       	} else if(menu == "540"){
+    		strTitle = "공시업무안내 동영상 가이드";
+    	} else if(menu == "550"){
+    		strTitle = "공시관련부서안내";
+    	}else if(menu == "610"){
+    		strTitle = "공시업무 게시판 기업공시제도 일반";
+    	} else if(menu == "620"){
+        	strTitle = "공시업무 게시판 공시유의사항";
+    	} else if(menu == "630"){
+    		strTitle = "공시업무 게시판 FAQ";
+    	} else if(menu == "640"){
+    		strTitle = "공시업무 게시판 보도자료";
+    	} else if(menu == "650"){
+    		strTitle = "공시업무 게시판 단기매매차익 발생사실";
+    	}else{
+    		strTitle = "기업공시 길라잡이";
+    	}
+
+        if(sns == 'T'){
+        	window.open("//twitter.com/home?status="+encodeURIComponent(strTitle) + ' ' + strURL);
+        }
+        else if(sns == 'F'){
+            window.open("https://www.facebook.com/sharer/sharer.php?u="+strURL+"&t="+strTitle);
+        }
+        else if(sns == 'B'){
+        	window.open("http://blog.naver.com/openapi/share?url=" + encodeURIComponent(strURL) + "&title=" + encodeURIComponent(strTitle));
+        }
+        else if(sns == 'K'){
+       		Kakao.Link.sendDefault({
+       			objectType: 'feed',
+       			content: {
+       				title: strTitle,
+       				description: strTitle,
+       				imageUrl: "https://dart.fss.or.kr/images/common/logo.gif",
+       				imageWidth: 800,
+       				imageHeight: 450,
+       				link: {
+       					mobileWebUrl: strURL,
+       					webUrl: strURL
+      					}
+       			}
+       		});
+       	}
+        else if(sns == 'M'){
+    		if (window.sidebar && window.sidebar.addPanel) {
+    			// Firefox version < 23
+    			window.sidebar.addPanel(strTitle, strURL, '');
+    		} else if ((window.sidebar && (navigator.userAgent.toLowerCase().indexOf('firefox') > -1)) || (window.opera && window.print)) {
+    			//Firefox version >= 23 and Opera Hotlist
+    			var elem = document.createElement('a');
+    			elem.setAttribute('href',strURL);
+    			elem.setAttribute('title',strTitle);
+    			elem.setAttribute('rel','sidebar');
+    			elem.click();
+    		} else if (window.external && ('AddFavorite' in window.external)) {
+    			// IE Favorite
+    			window.external.AddFavorite(strURL, strTitle);
+    		} else {
+    			// WebKit - Safari/Chrome
+    			alert((navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Cmd' : 'Ctrl') + '+D 키를 눌러 즐겨찾기에 등록하실 수 있습니다.');
+    		}
+        }
+    }
+
+    var current_bbsno = '';
+    $(window).resize(function() {
+    	if(current_bbsno != ''){
+    		if($("#modalDetail").attr("aria-hidden") == 'true'){
+        		current_bbsno = '';
+        		return;
+    		}
+        	if(window.innerWidth <= 992){
+        		showEduDetail(current_bbsno);
+        		current_bbsno = '';
+        	}
+    	}
+    });
+
+    function selectEduSchdule(bbsNo) {
+    	current_bbsno = bbsNo;
+    	if(this.innerWidth <= 992){
+    		showEduDetail(bbsNo);
+    	}else{
+    		var bbsNoList = document.getElementsByName('textBbsNo');
+    		var titleList = document.getElementsByName('textTitle');
+    		var contentList = document.getElementsByName('textContent');
+    		var eduDateList = document.getElementsByName('textEdudate');
+    		var fnameList = document.getElementsByName('textFilename');
+    		var linkList = document.getElementsByName('textLink');
+    		for(var i=0; i<bbsNoList.length;i++){
+    			if(bbsNo == bbsNoList[i].value){
+    				document.getElementById('lbTitle').innerText = titleList[i].value;
+    				document.getElementById('lbDate').innerText = eduDateList[i].value;
+    				document.getElementById('TaContent').innerText = contentList[i].value;
+    				if(linkList[i].value != ''){
+    					document.getElementById('aLink').href = linkList[i].value;
+        				document.getElementById('txtLink').textContent = linkList[i].value;
+        				$("#liLink").css("display","block");
+    				}else{
+    					$("#liLink").css("display","none");
+    				}
+    				if(fnameList[i].value != ''){
+        				document.getElementById('txtFilename').textContent = fnameList[i].value;
+    					$("#liFile").css("display","block");
+    				}else{
+    					$("#liFile").css("display","none");
+    				}
+    				break;
+    			}
+    		}
+    		$("#modalDetail").modal();
+    	}
+    }
+
+	 /**
+	 * 금융감독원 사이트 파일 다운로드
+	 */
+	function getFSSFileUrl(fileid, sn){
+		var url ;
+		var amp = "&";
+		url = 'https://www.fss.or.kr/fss/cmmn/file/fileDown.do?atchFileId='+fileid+amp+'fileSn='+sn;
+		window.location.href = url;
+	} 
+    
+	function showEduDetail(bbsNo) {
+	   	if(bbsNo == '') return;
+	   	var form = document.createElement("form");
+	    form.setAttribute("charset", "UTF-8");
+	    form.setAttribute("method", "Post");  //Post 방식
+	    form.setAttribute("action", "/info/calendarDetail.do"); //요청 보낼 주소
+	
+	    var hiddenField = document.createElement("input");
+	    hiddenField.setAttribute("type", "hidden");
+	    hiddenField.setAttribute("name", "menu");
+	    hiddenField.setAttribute("value", "401");
+	    form.appendChild(hiddenField);
+	
+	    hiddenField = document.createElement("input");
+	    hiddenField.setAttribute("type", "hidden");
+	    hiddenField.setAttribute("name", "bbsno");
+	    hiddenField.setAttribute("value", bbsNo);
+	    form.appendChild(hiddenField);
+	
+	    document.body.appendChild(form);
+	    form.submit();
+	}
+
+	function downCalendarAttach(bbsNo) {
+		if(bbsNo == '0')
+			bbsNo = current_bbsno;
+	
+		var searchForm = document.searchForm;
+		searchForm.bbsno.value = bbsNo;
+		searchForm.action = "/info/downCalendarAttach.do";
+		searchForm.submit();
+	}
+	
+	function downloadGuide(gubun) {
+		var searchForm = document.searchForm;
+		searchForm.fileGubun.value = gubun;
+		searchForm.action = "/info/downloadGuide.do";
+		searchForm.submit();
+	}
+	
+	
+	function linkMover() {
+		var url = $(location).attr("href");
+	   	var tabPointer = url.lastIndexOf("#");
+	   	var focusPointer = url.lastIndexOf("_");
+		var tab = "";
+		var focus = "";
+	
+		if (focusPointer != -1) {
+			tab = url.substring(tabPointer + 1, focusPointer);
+			focus = url.substring(focusPointer + 1);
+		} else {
+			tab = url.substring(tabPointer + 1, url.length);
+		}
+	
+		if (tabPointer != -1) {
+			//아이디 생성
+			var a_cnt = 0;
+			$(".page-tab").find("a").each(function() {
+				if (($(this).attr("href")).indexOf("#content-tab") != -1) {
+					a_cnt = a_cnt + 1;
+					$(this).attr("id", "tab" + a_cnt);
+				}
+			});
+	
+			var h3_cnt = 0;
+			$("h3").each(function() {
+				h3_cnt = h3_cnt + 1;
+				$(this).attr("id", "sub" + h3_cnt);
+			});
+	
+			//탭 이동
+			//상위탭
+			var child_href = $("#" + tab).attr("href");
+			if(child_href) {
+				var depts = child_href.split("-");
+				if (depts != null && depts.length > 3) {
+					var parent_href = child_href.substring(0, child_href.lastIndexOf("-"));
+	
+					$(".sub-top-tab").find("a").each(function() {
+						if (($(this).attr("href")) == parent_href) {
+							$(this).trigger("click");
+						}
+					});
+				}
+			}
+			//하위탭
+			$("#" + tab).trigger("click");
+	
+			//포커스 이동
+			if (focus != '') {
+				if (window.innerWidth <= 992) {
+					var offset = $("#" + focus).offset();
+					$("html, body").animate({scrollTop : offset.top - 110}, 0);
+				} else {
+					document.getElementById(focus).scrollIntoView();
+				}
+			}
+		}
+	}
+		
+	function selectGongsi(seqno) {
+		var searchForm = document.searchGuideForm;
+		searchForm.action = "/info/selectGuide.do";
+		searchForm.seqno.value = seqno;
+		searchForm.submit();
+	}
+	
+	function selectGongsi2(seqno) {
+		var searchForm = document.searchGuideForm2;
+		searchForm.action = "/info/selectGuide1.do";
+		searchForm.seqno.value = seqno;
+		searchForm.submit();
+	}
+	
+	function selectFaq(seqno) {
+	
+		var searchFaqForm = document.searchFaqForm;
+		searchFaqForm.action = "/info/selectFaq.do";
+		searchFaqForm.seqno.value = seqno;
+		searchFaqForm.submit();
+	}
+	
+	function goQuarter() {
+		var quarterForm = document.quarterForm;
+		quarterForm.action = "/info/main.do";
+		quarterForm.menu.value = '420';
+		quarterForm.submit();
+	}
+	
+	function searchKeyCase(page) {
+		if (page == null) page = 1;
+		$("#searchKeyCaseForm #currentPage").val(page);
+		$.ajax({
+			type : "post",
+			url : "/info/searchKeyCase.ax",
+			data : $("#searchKeyCaseForm").serialize(),
+			dataType : "html",
+			success : function(html) {
+				$("#content-tab-4").html(html);
+			}
+		});
+	}
+	
+	function selectKeyCase(seqno) {
+		$("#searchKeyCaseForm #seqno").val(seqno);
+		$.ajax({
+			type : "post",
+			url : "/info/selectKeyCase.ax",
+			data : $("#searchKeyCaseForm").serialize(),
+			dataType : "html",
+			success : function(html) {
+				$("#content-tab-4").html(html);
+			}
+		});
+	}
+	
+	</script>
+</head>
+
+
+
+
+<body class="sub">
+
+	<div class="wrapper">
+    	<!-- Start // header -->
+    	<div class="header-wrap">
+      		<div class="header">
+        		<button class="btn-menu" title="메뉴 열기 버튼"></button>
+        		<div class="header-top">
+          			<h1 class="logo">
+						<a href="/main.do"><img src="/info/images/logo-header.png" alt="전자공시시스템 DART"></a>
+						<a href="/info/main.do"><img src="/info/images/logo-header_info.png" alt="기업공시 길라잡이"></a>
+          			</h1>
+        		</div>
+        		<div class="header-bottom">
+         			<div class="gnb">
+            			<ul>
+              				<li><a href="/info/main.do?menu=110">대표이사•신고담당이사</a>
+		                		<ul>
+		                  			<li><a href="/info/main.do?menu=110">공시서류 확인 및 서명</a></li>
+		                  			<li><a href="/info/main.do?menu=120">이사의 경영진단 및 분석의견</a></li>
+		                		</ul>
+              				</li>
+              				<li><a href="/info/main.do?menu=210">공시실무자</a>
+				                <ul>
+				                  	<li><a href="/info/main.do?menu=210">정기 보고서</a></li>
+				                  	<li><a href="/info/main.do?menu=220">주요사항 보고서</a></li>
+				                  	<li><a href="/info/main.do?menu=240">합병</a></li>
+				                  	<li><a href="/info/main.do?menu=230">발행공시</a></li>
+				                </ul>
+              				</li>
+              				<li><a href="/info/main.do?menu=310">지분공시의무자</a>
+                				<ul>
+                  					<li><a href="/info/main.do?menu=310">대량 보유상황 보고</a></li>
+                  					<li><a href="/info/main.do?menu=320">임원 소유상황 보고</a></li>
+                  					<li><a href="/info/main.do?menu=330">단기매매차익 반환</a></li>
+                  					<li><a href="/info/main.do?menu=340">임원 등의 특정증권등 거래계획 보고</a></li>
+                				</ul>
+              				</li>
+              				<li><a href="/info/main.do?menu=500">공시업무 안내</a>
+              					<ul>
+                  					<li><a href="/info/main.do?menu=500">공시의무 미 이행 안내 유의사항</a></li>
+                  					<li><a href="/info/main.do?menu=510">전자공시절차</a></li>
+                  					<li><a href="/info/main.do?menu=410">공시업무 스케줄</a></li>
+                  					<li><a href="/info/main.do?menu=540">동영상 가이드</a></li>
+                  					<li><a href="/info/main.do?menu=550">공시관련부서안내</a></li>
+                				</ul>
+              				</li>
+              				<li><a href="/info/searchGuide.do">공시업무 게시판</a>
+              					<ul>
+                  					<li><a href="/info/searchGuide.do">기업공시제도 일반</a></li>
+                  					<li><a href="/info/searchGuide02.do">공시유의사항</a></li>
+                  					<li><a href="/info/searchFaq.do">FAQ</a></li>
+                  					<li><a href="/info/searchBodo.do">보도자료</a></li>
+                  					<li><a href="/info/searchSsp.do">단기매매차익 발생사실</a></li>
+                				</ul>
+              				</li>
+            			</ul>
+          			</div>
+          			<button class="btn-menu-close" title="메뉴 닫기 버튼"></button>
+        		</div>
+      		</div>
+    	</div>
+    	<!-- End // header -->
+		<!-- Start // content -->
+		<div id="contents" class="content-wrap">
+			
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    	
+		    		
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+function search(page) {
+	
+	var frm = document.getElementById("searchBodoForm");
+	frm.currentPage.value = page;
+	var title= frm.title.value;
+	frm.action = "/info/searchBodo.do";
+	frm.currentPage.value = page;
+	frm.submit();
+	
+
+}
+
+function searchCont(page) {
+	search(page);
+	
+}
+ function searchPressEnterBodo(obj,evt){
+		if(evt.keyCode==13){searchCont(1);}
+}
+function selectBodo(seqno) {
+
+	var searchBodoForm = document.searchBodoForm;
+	searchBodoForm.action = "/info/selectBodo.do";
+	searchBodoForm.seqno.value = seqno;
+	searchBodoForm.submit();
+}
+
+function movepage(url){
+	window.location.href = url;
+}
+</script>
+<!-- sub top -->
+<div class="sub-top">
+	<div class="top-title">
+		<h2>보도자료</h2>
+			<div class="page-navigation">
+				<span onclick="movepage('/info/main.do')"  >홈</span>
+				<span>&gt;</span>
+				<span onclick="movepage('/info/searchGuide.do')" >공시업무 게시판</span>
+				<span>&gt;</span>
+				<span onclick="movepage('/info/searchBodo.do')" >보도자료</span>
+		</div>
+	</div>
+</div>
+<!-- //sub top -->
+<div class="content">
+	<!-- content box -->
+	<div class="tab-content">
+		<div class="page-tab">
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" onclick="movepage('/info/searchGuide.do')"><a data-toggle="tab" href="/info/searchGuide.do">기업공시제도 일반</a></li>
+				<li role="presentation" onclick="movepage('/info/searchGuide02.do')"><a data-toggle="tab" href="/info/searchGuide02.do">공시유의사항</a></li>
+				<li role="presentation" onclick="movepage('/info/searchFaq.do')"><a data-toggle="tab" href="/info/searchFaq.do">FAQ</a></li>
+				<li role="presentation" onclick="movepage('/info/searchBodo.do')"><a data-toggle="tab" class="active" href="/info/searchBodo.do">보도자료</a></li>
+				<li role="presentation" onclick="movepage('/info/searchSsp.do')"><a data-toggle="tab" href="/info/searchSsp.do">단기매매차익 발생사실</a></li>
+			</ul>
+		</div>
+		<div class="content-box">
+			<form name="searchBodoForm" id="searchBodoForm" action="selectBodo.do" method="post" onsubmit="return false">
+			<input type="hidden" name="currentPage" id="currentPage" value="" />
+			<input type="hidden" name="seqno" id="seqno"/>
+			<input type="submit" style="display:none" name="goAction" />
+			<div class="compare-box listSearchCompare">
+				<div class="listTopSearch">
+					<span class="title">제목</span>
+					<span class="frmInput">
+						<input type="text" name="title" id="title" size="50" title="제목" value=""  onkeyup="searchPressEnterBodo(this.value,event);"/>
+					</span>
+					<label for="title">
+						<button class="btnSearch" onclick="searchCont(1); return false;">검색</button>
+					</label>
+				</div>
+			</div>
+			</form>			
+			<!-- tbListWrap -->
+			<div class="info-table guide-table">
+				<table class="tbList" summary="보도자료에 대한 번호, 제목, 담당부서, 작성일자, 조회수, 첨부파일등 을 알리는 표입니다.">
+					<caption>보도자료 목록</caption>
+						<thead>
+							<tr>
+								<th scope="col">번호</th>
+								<th scope="col">제목</th>
+								<th scope="col">담당부서</th>
+								<th scope="col">작성일자</th>
+								<th scope="col">조회수</th>
+								<th scope="col">첨부파일</th>
+							</tr>
+						</thead>
+					<tbody>
+					
+						
+							
+								<tr>
+									<td class="cen_txt">
+										1182
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28363'); return false;" title="중소, 벤처기업의 자금조달 절차 완화를 위한 자본시장법 시행령, 감독규정 개정">중소, 벤처기업의 자금조달 절차 완화를 위한 자본시장법 시행령, 감독규정 개정</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.07.21
+									</td>
+									<td class="cen_txt">
+										152
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('094e24c815b64bada05f14c28b61cf2f','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260721_(보도자료) 중소, 벤처기업의 자금조달 절차 완화를 위한 자본시장법 시행령, 감독규정 개정.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('094e24c815b64bada05f14c28b61cf2f','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260721_(보도자료) 중소, 벤처기업의 자금조달 절차 완화를 위한 자본시장법 시행령, 감독규정 개정.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1181
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28336'); return false;" title="지속가능성 공시, 28년(FY27) 연결자산총액 10조원 이상 코스피 상장사부터 시작합니다">지속가능성 공시, 28년(FY27) 연결자산총액 10조원 이상 코스피 상장사부터 시작합니다</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.07.08
+									</td>
+									<td class="cen_txt">
+										907
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('f62899eeb8d54b7293e10b9be5004b8f','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260707_(보도자료) 지속가능성 공시, 28년(FY27) 연결자산총액 10조원 이상 코스피 상장사부터 시작합니다.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('f62899eeb8d54b7293e10b9be5004b8f','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260707_(보도자료) 지속가능성 공시, 28년(FY27) 연결자산총액 10조원 이상 코스피 상장사부터 시작합니다.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('f62899eeb8d54b7293e10b9be5004b8f','3 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260707_(별첨) 지속가능성 공시 제도화 방안.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1180
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28303'); return false;" title="26.5월중 기업의 직접금융 조달실적">26.5월중 기업의 직접금융 조달실적</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.06.30
+									</td>
+									<td class="cen_txt">
+										830
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('edf67aaa1b8a424fa5e1e0fdb91fef6e','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260629_(보도자료) 26.5월중 기업의 직접금융 조달실적.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('edf67aaa1b8a424fa5e1e0fdb91fef6e','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260629_(보도자료) 26.5월중 기업의 직접금융 조달실적.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1179
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28296'); return false;" title="2025년도 사업보고서에 대한 중점 점검 결과">2025년도 사업보고서에 대한 중점 점검 결과</a></span>
+									</td>
+									<td class="cen_txt">
+										공시심사국/회계감리1국/회계감리2국
+									</td>
+									<td class="cen_txt">
+										2026.06.29
+									</td>
+									<td class="cen_txt">
+										1289
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('1704b1e34e344669a313297194b02335','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnFile" title="260629_(보도자료) 2025년도 사업보고서에 대한 중점 점검 결과.hwpx"></button>
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('1704b1e34e344669a313297194b02335','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260629_(보도자료) 2025년도 사업보고서에 대한 중점 점검 결과.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1178
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28276'); return false;" title="자기주식 보유, 처분 공시 강화해 기업가치 제고 뒷받침한다!">자기주식 보유, 처분 공시 강화해 기업가치 제고 뒷받침한다!</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.06.23
+									</td>
+									<td class="cen_txt">
+										1240
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('957894706c624840bcd4a36ccc2278b4','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260623_(보도자료) 자기주식 보유, 처분 공시 강화해 기업가치 제고 뒷받침한다!.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('957894706c624840bcd4a36ccc2278b4','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260623_(보도자료) 자기주식 보유, 처분 공시 강화해 기업가치 제고 뒷받침한다!.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1177
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28228'); return false;" title="개정 상법 정착 및 주주가치 제고를 위한 「찾아가는 기업공시 설명회」 개최">개정 상법 정착 및 주주가치 제고를 위한 「찾아가는 기업공시 설명회」 개최</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.06.09
+									</td>
+									<td class="cen_txt">
+										1038
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('011c09d47360469caeb2585de5933378','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260608_(보도자료) 개정 상법 정착 및 주주가치 제고를 위한 찾아가는 기업공시 설명회 개최.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('011c09d47360469caeb2585de5933378','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260608_(보도자료) 개정 상법 정착 및 주주가치 제고를 위한 찾아가는 기업공시 설명회 개최.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1176
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28220'); return false;" title="26.4월중 기업의 직접금융 조달실적">26.4월중 기업의 직접금융 조달실적</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.06.02
+									</td>
+									<td class="cen_txt">
+										825
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('1f9ae7a378584c3b89fe82504380020a','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260601_(보도자료) 26.4월중 기업의 직접금융 조달실적.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('1f9ae7a378584c3b89fe82504380020a','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260601_(보도자료) 26.4월중 기업의 직접금융 조달실적.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1175
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28181'); return false;" title="단일종목 레버리지, 인버스 상품(ETF,ETN) 도입에 따른 투자자 유의사항 안내">단일종목 레버리지, 인버스 상품(ETF,ETN) 도입에 따른 투자자 유의사항 안내</a></span>
+									</td>
+									<td class="cen_txt">
+										자산운용감독국/자본시장감독국/기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.05.15
+									</td>
+									<td class="cen_txt">
+										3235
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('bb7eea0eb6dc4884a16b37542c7b4fe6','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnFile" title="260515_(보도참고) 단일종목 레버리지, 인버스 상품(ETF,ETN) 도입에 따른 투자자 유의사항 안내.hwpx"></button>
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('bb7eea0eb6dc4884a16b37542c7b4fe6','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260515_(보도참고) 단일종목 레버리지, 인버스 상품(ETF,ETN) 도입에 따른 투자자 유의사항 안내.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1174
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28179'); return false;" title="민,관 합동 「토큰증권 협의체」 제2차회의 개최">민,관 합동 「토큰증권 협의체」 제2차회의 개최</a></span>
+									</td>
+									<td class="cen_txt">
+										자산운용감독국/기업공시국/자본시장감독국
+									</td>
+									<td class="cen_txt">
+										2026.05.15
+									</td>
+									<td class="cen_txt">
+										633
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('b8b85319748149878306115112b18322','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260515_(보도자료) 민, 관 합동 토큰증권 협의체 제2차회의 개최.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('b8b85319748149878306115112b18322','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260515_(보도자료) 민, 관 합동 토큰증권 협의체 제2차회의 개최.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('b8b85319748149878306115112b18322','3 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260515_(별첨) 금융위원회 부위원장 모두발언.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1173
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28151'); return false;" title="26년 1분기 등록 ABS 발행 실적">26년 1분기 등록 ABS 발행 실적</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.04.30
+									</td>
+									<td class="cen_txt">
+										995
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('7756e00a55ed4aaab4dd68c4b5b7f947','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260430_(보도자료) 26년 1분기 등록 ABS 발행 실적.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('7756e00a55ed4aaab4dd68c4b5b7f947','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260430_(보도자료) 26년 1분기 등록 ABS 발행 실적.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1172
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28144'); return false;" title="26.3월중 기업의 직접금융 조달실적">26.3월중 기업의 직접금융 조달실적</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.04.29
+									</td>
+									<td class="cen_txt">
+										651
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('e8a0037b2a6a45a698cc51673f07dda9','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260428_(보도자료) 26.3월중 기업의 직접금융 조달실적.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('e8a0037b2a6a45a698cc51673f07dda9','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260428_(보도자료) 26.3월중 기업의 직접금융 조달실적.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1171
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28135'); return false;" title="상장회사 등 임원의 책임성 강화 및 주주권익 보호를 위해 사업보고서 등을 통한 임원보수 공시가 강화됩니다">상장회사 등 임원의 책임성 강화 및 주주권익 보호를 위해 사업보고서 등을 통한 임원보수 공시가 강화됩니다</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.04.27
+									</td>
+									<td class="cen_txt">
+										2745
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('d82c5395d5d7461d9aefa8ba5529a16b','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnFile" title="260427_(보도자료) 상장회사 등 임원의 책임성 강화 및 주주권익 보호를 위해 사업보고서 등을 통한 임원보수 공시가 강화됩니다.hwpx"></button>
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('d82c5395d5d7461d9aefa8ba5529a16b','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260427_(보도자료) 상장회사 등 임원의 책임성 강화 및 주주권익 보호를 위해 사업보고서 등을 통한 임원보수 공시가 강화됩니다.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1170
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28116'); return false;" title="상장폐지 회피 등을 위한 불법행위 끝까지 추적하여 엄단하겠습니다">상장폐지 회피 등을 위한 불법행위 끝까지 추적하여 엄단하겠습니다</a></span>
+									</td>
+									<td class="cen_txt">
+										조사1국/공시심사국/회계감리1국
+									</td>
+									<td class="cen_txt">
+										2026.04.19
+									</td>
+									<td class="cen_txt">
+										1638
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('b3ba43897a394b58a5f92a44b05bcd89','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260417_(보도자료) 상장폐지 회피 등을 위한 불법행위 끝까지 추적하여 엄단하겠습니다.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('b3ba43897a394b58a5f92a44b05bcd89','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260417_(보도자료) 상장폐지 회피 등을 위한 불법행위 끝까지 추적하여 엄단하겠습니다.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1169
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28096'); return false;" title="투자자가 쉽게 이해하는 바이오 공시로의 전환">투자자가 쉽게 이해하는 바이오 공시로의 전환</a></span>
+									</td>
+									<td class="cen_txt">
+										공시심사국
+									</td>
+									<td class="cen_txt">
+										2026.04.12
+									</td>
+									<td class="cen_txt">
+										1493
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('bc05e5b86e0548cfb52e923066cd6c0c','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260410_(보도자료) 투자자가 쉽게 이해하는 바이오 공시로의 전환.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('bc05e5b86e0548cfb52e923066cd6c0c','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260410_(보도자료) 투자자가 쉽게 이해하는 바이오 공시로의 전환.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+								<tr>
+									<td class="cen_txt">
+										1168
+									</td>
+									<td>
+										<span style="cursor:pointer;" class="none_visited"><a href="#bodoName" onclick="selectBodo('28080'); return false;" title="중소벤처기업 공시부담 완화를 위한 자본시장법 시행령 등 개정 추진">중소벤처기업 공시부담 완화를 위한 자본시장법 시행령 등 개정 추진</a></span>
+									</td>
+									<td class="cen_txt">
+										기업공시국
+									</td>
+									<td class="cen_txt">
+										2026.04.06
+									</td>
+									<td class="cen_txt">
+										883
+									</td>
+									<td class="cen_txt end">
+									
+										
+										
+										
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('330bf210fbce49ecb68f75bf14e8d3b0','1 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnHan" title="260406_(보도자료) 중소벤처기업 공시부담 완화를 위한 자본시장법 시행령 등 개정 추진.hwp"></button>
+
+
+
+
+
+
+
+
+
+
+											</a>
+										
+											<a href="javascript:void(0);" onclick="getFSSFileUrl('330bf210fbce49ecb68f75bf14e8d3b0','2 ');  return false;">
+												
+												
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<button class="btnPdf" title="260406_(보도자료) 중소벤처기업 공시부담 완화를 위한 자본시장법 시행령 등 개정 추진.pdf"></button>
+
+
+
+
+
+
+
+
+											</a>
+										
+										
+									
+									</td>
+								</tr>
+							
+						
+						
+					
+					</tbody>
+				</table>
+			</div>
+			
+			<!-- psWrap -->
+			
+				<div class = "psWrap">
+					<div class="pageInfo">[1/79] [총 1,182건]</div>
+					
+					<div class="pageSkip">
+						<ul>
+							<li ><a href="javascript:search(1);" class="first">처음으로</a></li><li class="preview"><a href="javascript:search(1);" class="preview">이전</a></li><li class="on"><a onClick="javascript:void(0);">1</a></li><li><a href="javascript:search(2);">2</a></li><li><a href="javascript:search(3);">3</a></li><li><a href="javascript:search(4);">4</a></li><li><a href="javascript:search(5);">5</a></li><li><a href="javascript:search(6);">6</a></li><li><a href="javascript:search(7);">7</a></li><li><a href="javascript:search(8);">8</a></li><li><a href="javascript:search(9);">9</a></li><li><a href="javascript:search(10);">10</a></li><li ><a href="javascript:search(11);" class="next">다음 페이지</a></li><li ><a href="javascript:search(79);" class="last">끝 페이지</a></li>
+
+						</ul>
+					</div>
+				</div>
+			
+		</div>
+	</div>
+	<!-- //content box -->
+</div>
+		    	
+		    	
+		    	
+		    	
+		    	
+		    
+    	</div>
+
+<form name="searchForm" id="searchForm" action="/info/main.do" method="post" >
+	<input type="hidden" name="menu" id="menu"/>
+	<input type="hidden" name="bbsno" id="bbsno"/>
+	<input type="hidden" name="fileGubun" id="fileGubun"/>
+	<input type="submit" style="display:none" name="goAction" />
+</form>
+    	<!-- End // content -->
+
+    	<!-- Start // footer -->
+	    <div class="footer-wrap">
+	      	<div class="footer">
+	        	<div class="footer-top">
+	          		<div class="footer-links">
+	            		<a href="https://www.fss.or.kr" target="_blank" rel="noopener" title="금융감독원 새창"><img src="/info/images/img-footer-family-1.gif" alt="금융감독원 로고"></a>
+	            		<a href="http://www.fsc.go.kr/" target="_blank" rel="noopener" title="금융위원회 새창"><img src="/info/images/img-footer-family-2.gif" alt="금융위원회 로고"></a>
+	            		<a href="https://www.fss.or.kr/fss/job/lrgInfoMain/intro.do?menuNo=200485" target="_blank" rel="noopener" title="금융감독 법규 새창"><img src="/info/images/img-footer-family-3.gif" alt="금융감독 법규 로고"></a>
+	            		<a href="https://www.fss.or.kr/fss/main/sub1Unfair.do?menuNo=200080" target="_blank" rel="noopener" title="인터넷증권 범죄신고 새창"><img src="/info/images/img-footer-family-4.gif" alt="인터넷 증권 범죄신고 로고"></a>
+	            		<a href="https://1398.acrc.go.kr/hpg/req/hpgPssStep1.do" target="_blank" rel="noopener" title="복지보조금 부정 신고센터 새창" onclick="openBanner('01'); window.open(this.href); return false;">
+							<img src="/info/images/img-footer-family-5.gif" alt="복지보조금 부정 신고센터 로고">
+						</a>
+	            		<a href="https://www.fss.or.kr/fss/main/contents.do?menuNo=200289" target="_blank" rel="noopener" title="금융감독원 공익신고센터 새창"
+	            			onclick="openBanner('02'); window.open(this.href); return false;">
+	            			<img src="/info/images/img-footer-family-6.gif" alt="금융감독원 공익신고센터 로고">
+	           			</a>
+	            		<a href="/jsp/privacy.jsp" target="_blank" rel="noopener" title="개인정보처리방침 새창">
+	            			<img src="/info/images/img-footer-family-7.gif" alt="개인정보 처리방침 로고">
+	            		</a>
+	            		<a href="http://www.ftc.go.kr/" target="_blank" rel="noopener" title="공정거래위원회 새창"><img src="/info/images/img-footer-family-8.gif" alt="공정거래위원회 로고"></a>
+	          		</div>
+	        	</div>
+	        	<div class="footer-bottom">
+	          		<h2 class="footer-logo">
+	            		<img src="/info/images/logo-footer.png" alt="금융감독원">
+	          		</h2>
+	          		<div class="footer-info">
+		            	<div class="info">
+		              		<span>서울특별시 영등포구 여의대로 38</span>
+		              		<span>대표전화 02-3145-5114</span>
+		            	</div>
+		            	<div class="copyright">
+		              		COPYRIGHT &copy; FINANCIAL SUPERVISORY SERVICE ALL RIGHTS RESERVED.
+		            	</div>
+		          	</div>
+		          	<div class="inquiry-call">
+		            	<span>홈페이지 이용문의 : (국번없이)1332 (5번 → 1번 → 1번)</span>
+		            	<span>기업공시 제도문의 : (국번없이)1332 (5번 → 1번 → 2,3,4,5번)</span>
+		          	</div>
+	        	</div>
+	      	</div>
+	    </div>
+	    <!-- End // footer -->
+	</div>
+
+  	<!-- modal -->
+  	<!-- Button trigger modal -->
+  	<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modelId" style="display: none;">
+    	Launch
+  	</button>
+
+  	<!-- Modal -->
+  	<div class="modal fade modal-basic" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    	<div class="modal-dialog" id="modalDialog" role="document">
+      		<div class="modal-content border">
+        		<div class="modal-header border-bottom">
+          			<h4 class="modal-title"><label id="lbTitle"></label></h4>
+          			<span class="date"><label id="lbDate"></label></span>
+        		</div>
+        		<div class="modal-body">
+          			<div class="board-detail">
+            			<div id="TaContent" class="board-body">
+						</div>
+            			<div class="board-foot border-top">
+	              			<ul>
+	                			<li id="liFile">
+	                  				<a href="javascript:downCalendarAttach('0')" class="uploaded-file">
+	                    				<i class="icon-file">
+											<img src="/info/images/icon-file.png" alt="">
+										</i>
+	                    				<span id="txtFilename"></span>
+	                  				</a>
+	                			</li>
+	                			<li id="liLink">
+	                  				<a id="aLink" href="javascript:void(0);" target="_blank" rel="noopener">
+	                    				<i class="icon-global">
+											<img src="/info/images/icon-global.png" alt="">
+										</i>
+	                    				<span id="txtLink"></span>
+	                  				</a>
+	                			</li>
+	              			</ul>
+            			</div>
+          			</div>
+        		</div>
+        		<button class="btn-modal-close" data-dismiss="modal" title="닫기"></button>
+      		</div>
+    	</div>
+  	</div>
+  	<!-- //modal -->
+</body>
+
+</html>

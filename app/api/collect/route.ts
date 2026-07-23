@@ -10,13 +10,23 @@ import { fscRegCollector } from "@/lib/collectors/fsc-reg";
 import { ftcBodoCollector } from "@/lib/collectors/ftc-bodo";
 import { klcaDocCollector } from "@/lib/collectors/klca-doc";
 import { klcaLawCollector } from "@/lib/collectors/klca-law";
+import { fssBodoCollector } from "@/lib/collectors/fss-bodo";
+import { fssGuideCollector } from "@/lib/collectors/fss-guide";
 import type { CollectedItem } from "@/lib/collectors/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const COLLECTORS = [fscBodoCollector, fscRegCollector, ftcBodoCollector, klcaDocCollector, klcaLawCollector]; // Task 8에서 추가
+const COLLECTORS = [
+  fscBodoCollector,
+  fscRegCollector,
+  ftcBodoCollector,
+  klcaDocCollector,
+  klcaLawCollector,
+  fssBodoCollector,
+  fssGuideCollector,
+];
 
 export async function POST(req: Request) {
   if (req.headers.get("x-cron-secret") !== process.env.CRON_SECRET) {
