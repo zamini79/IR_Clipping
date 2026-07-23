@@ -34,7 +34,15 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
               <span style={{ fontSize: 15 }}>📎</span>
               <span style={{ font: "500 13px 'Pretendard'", color: "#20242c", flex: 1 }}>{f.name}</span>
               <span style={{ font: "500 11px 'IBM Plex Mono'", color: "#9aa0ab" }}>{f.size}</span>
-              <span style={{ font: "600 11.5px 'Pretendard'", color: "#9a7b46" }}>다운로드</span>
+              {f.storagePath ? (
+                <a href={`/api/download?path=${encodeURIComponent(f.storagePath)}`}
+                  style={{ font: "600 11.5px 'Pretendard'", color: "#9a7b46", textDecoration: "none" }}>다운로드</a>
+              ) : f.externalUrl ? (
+                <a href={f.externalUrl} target="_blank" rel="noopener noreferrer"
+                  style={{ font: "600 11.5px 'Pretendard'", color: "#9a7b46", textDecoration: "none" }}>다운로드</a>
+              ) : (
+                <span style={{ font: "600 11.5px 'Pretendard'", color: "#9a7b46" }}>다운로드</span>
+              )}
             </div>
           ))}
           {clipping.files.length === 0 && (

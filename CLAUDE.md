@@ -13,8 +13,9 @@ This is now a **working Next.js application** (Phase 1 implementation complete),
 - `npm run build` — production build
 - `npm test` — unit/component tests (Vitest)
 - `npm run seed` — (re-)load seed data into Supabase (idempotent)
+- `npm run lint` — ESLint
 
-See the "실행 (Phase 1 구현체)" and "배포 (Vercel)" sections at the bottom of this README for full setup/deploy steps.
+See the "실행 (Phase 1 구현체)", "배포 (Vercel)", and "Phase 2 운영" sections at the bottom of this README for full setup/deploy steps.
 
 **Core logic pointers**:
 - `lib/board-view.ts` — pure view-transform logic (tab filter, search, pagination, NEW-badge, No numbering). Test-first; no I/O.
@@ -23,7 +24,15 @@ See the "실행 (Phase 1 구현체)" and "배포 (Vercel)" sections at the botto
 
 **Design origin**: the visual design still originates from the `.dc.html` mockup below plus the design-token spec in this README (colors/typography/radii/grid/shadows) — see "Design Tokens" further down. Components port those tokens as **inline styles** (not the mockup's custom runtime, and not yet a token/theme system) to reproduce the design pixel-for-pixel.
 
-**Phase 2 (out of scope for this repo today)**: the collection crawlers that populate Supabase (disclosure-regulation + FnGuide clipping) are **future scope**, specified in `docs/superpowers/specs/2026-07-23-ir-clipping-board-design.md`. This repo currently only reads/serves already-seeded data; it does not scrape or ingest.
+**Phase 2 (implemented)**: the collection pipeline that populates Supabase now lives in this repo, specified in `docs/superpowers/specs/2026-07-23-ir-clipping-board-design.md`.
+
+- `lib/collectors/*` — one module per source board, each exporting a `Collector` (see `lib/collectors/types.ts` for `CollectedItem`/`Collector`): `fsc-bodo.ts`, `fsc-reg.ts`, `ftc-bodo.ts`, `klca-doc.ts`, `klca-law.ts`, `fss-bodo.ts`, `fss-guide.ts`. `lib/collectors/normalize.ts` maps a `CollectedItem` to a `clippings` row and derives its dedup key (`board::sourceRef`). `lib/collectors/attachments.ts` copies each item's attachment bytes into the private Supabase Storage bucket `clipping-files`.
+- `lib/collect-run.ts` — `runCollectors` orchestrates all collectors, skips already-seen items via a dedup-key lookup, and reports `{ newItems, errors }`.
+- `lib/notify/digest.ts` + `lib/notify/mailer.ts` — builds and sends a digest email (via Gmail/nodemailer) to `alert_recipients` when a collection run finds new items; `notified_at` is stamped on inserted rows to prevent re-notification.
+- `app/api/collect/route.ts` — `POST`, guarded by `x-cron-secret` header matching `CRON_SECRET`. Runs all collectors, inserts new rows + attachments, sends the digest. `runtime = "nodejs"`, `dynamic = "force-dynamic"`, `maxDuration = 300`.
+- `app/api/download/route.ts` — `GET ?path=<storagePath>`, issues a 60s Supabase signed URL for a Storage object and redirects to it. Used by `DetailModal`'s attachment download link.
+- `.github/workflows/collect.yml` — hourly cron (`0 * * * *`) + `workflow_dispatch`, `POST`s `$APP_COLLECT_URL` with `x-cron-secret: $CRON_SECRET` (both from GitHub Actions Secrets), fails the job if the response is not HTTP 200.
+- `supabase/migrations/0002_phase2.sql` — Phase 2 schema additions (`board`/`source_ref`/`source_url`/`notified_at` on `clippings`, `external_url` on `clipping_files`, the `alert_recipients` table). The private `clipping-files` Storage bucket is created manually (not via SQL migration — see README "Phase 2 운영").
 
 ## Files
 

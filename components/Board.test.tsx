@@ -5,8 +5,8 @@ import { Board } from "./Board";
 import type { Category, Clipping } from "@/lib/types";
 
 function clip(cat: Category, i: number, extra: Partial<Clipping> = {}): Clipping {
-  return { id: `${cat}-${i}`, category: cat, title: `${cat} 제목 ${i}`, source: "출처",
-    department: "공시제도팀", body: "본문", collectedAt: "2026-07-21T00:00:00.000Z",
+  return { id: `${cat}-${i}`, category: cat, board: "seed", title: `${cat} 제목 ${i}`, source: "출처",
+    sourceRef: `${cat}-${i}`, sourceUrl: "", department: "공시제도팀", body: "본문", collectedAt: "2026-07-21T00:00:00.000Z",
     createdAt: "2026-07-21T00:00:00.000Z", files: [], ...extra };
 }
 
