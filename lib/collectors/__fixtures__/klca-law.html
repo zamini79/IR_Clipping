@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="ROBOTS" content="NOINDEX, NOFOLLOW, NOARCHIVE">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>상장협 - 최신법규</title>
+    
+    
+    <link rel="shortcut icon" href="../../img/klca_favicon.ico">
+    <link rel="icon" href="../../img/klca_favicon.ico">
+    <link rel="stylesheet" href="../../lib/css/reset.css">
+    <link rel="stylesheet" href="../../lib/css/klca.css?260722">
+
+    <script type="text/javascript" src="../../lib/js/jquery-1.11.3.min.js"></script> 
+    <script type="text/javascript" src="../../lib/js/jquery-ui.js"></script>
+    <script type="text/javascript" src="../../lib/js/jquery-carousel_1.1.js"></script>
+    <script type="text/javascript" src="../../lib/js/mini.js?ver=240219"></script>
+    <script type="text/javascript" src="../../lib/se2.3.0/js/HuskyEZCreator.js" charset="utf-8"></script>
+    <script type="text/javascript" src="../../lib/js/canvasjs.min.js"></script>
+    <script type="text/javascript" src="../../lib/js/jquery.vticker-min.js"></script>
+    
+
+    <!--[if lt IE 9]>
+    <script src="../../lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+<body>
+<!--[if lte IE 8]>
+<div style="width: 100%; height: 100px; font-size: 15px; font-weight: bold; text-align:center; padding: 20px; background:#00acd4; color:#fff; line-height:1.5">
+본회 웹사이트는 마이크로소프트 지원이 종료된 <span style="color:#00325a">Internet Explorer 8 이하</span>에서는 정상적으로 표시되지 않습니다. <br>
+최신 브라우저로 업그레이드 해주시길 바랍니다. <br><br>
+<a href="http://windows.microsoft.com/ko-kr/internet-explorer/download-ie" target="_blank" style="text-decoration:underline;">지금 업데이트 하기</a>
+</div>
+<![endif]-->
+
+<script language="JavaScript">
+String.prototype.trim = function() {
+  return this.replace(/(^\s*)|(\s*$)/g, "");
+}
+</script>
+
+<script language="javascript">
+function KeyCheckTop() {
+  if (event.keyCode==13) CallSchTop();
+}
+
+function CallSchTop() {
+  var bCheck = true;
+
+  if ((bCheck == true) && (document.all.topschtext.value.trim() == "")) {
+    alert("검색어를 입력하여 주십시요");
+    bCheck = false;
+  }
+
+  if (bCheck == true) {
+    var sParam = "";
+    sParam = sParam + "&rSchKey=title";
+    sParam = sParam + "&rSchText=" + escape(document.all.topschtext.value.trim());
+
+    window.location = "../../sub/main/search.asp?rWork=QrySchInsert&rRedirect=Y"+sParam;
+  }
+}
+</script>
+
+<script type="text/javascript">
+$(function(){
+  $("#news-dv_rolling").vTicker({ 
+    speed: 300,
+    pause: 2000,
+    animation: 'fade',
+    mousePause: true,
+    showItems: 1
+  });
+});
+</script>
+
+<!-- header --> 
+<div id="skip">
+<a href="#lnb" class="notxt">메인메뉴 바로가기</a>
+<a href="#con_body" class="notxt">본문으로 바로가기</a>
+</div>
+<div id="topgroup">
+  <div class="wrap">
+    <div class="gnb">
+        <ul class="gnbul">
+        
+          <li><a href="../../sub/main/login.asp">Login</a></li> 
+          <li><a href="../../sub/main/join.asp">업무담당자 등록&middot;회원가입</a></li>
+          
+        </ul>
+    </div>
+  </div>
+</div>
+<header>
+  <div id="top_area">
+    <div class="wrap">
+      <h1><a href="/index.asp" class="top_logo"><img src="/img/logo.png" alt="한국상장회사협의회"></a></h1>
+      <div class="m_search_btn">
+        <a href="">검색</a>
+      </div>
+      <div class="search">
+        
+        <div class="main_i_word">
+          <span class="tit">인기 검색어</span>
+          <div id="news-dv_rolling" style="width: 180px; overflow: hidden; position: relative; height: 15px;">
+            <ul class="ranklist">
+            
+              <li ><span class="rank">1</span>자기주식</li>
+            
+              <li style="display:none"><span class="rank">2</span>자기주식보고서</li>
+            
+              <li style="display:none"><span class="rank">3</span>표준정관</li>
+            
+              <li style="display:none"><span class="rank">4</span>전자주주총회</li>
+            
+              <li style="display:none"><span class="rank">5</span>내부회계</li>
+            
+              <li style="display:none"><span class="rank">6</span>독립이사</li>
+            
+              <li style="display:none"><span class="rank">7</span>내부회계관리규정</li>
+            
+              <li style="display:none"><span class="rank">8</span>소각</li>
+            
+            </ul>
+          </div>
+          <div class="rankbox">
+            <ol class="ranklist">
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=자기주식"><span class="rank">1</span>자기주식</a></li>
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=자기주식보고서"><span class="rank">2</span>자기주식보고서</a></li>
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=표준정관"><span class="rank">3</span>표준정관</a></li>
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=전자주주총회"><span class="rank">4</span>전자주주총회</a></li>
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=내부회계"><span class="rank">5</span>내부회계</a></li>
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=독립이사"><span class="rank">6</span>독립이사</a></li>
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=내부회계관리규정"><span class="rank">7</span>내부회계관리규정</a></li>
+            
+              <li><a href="../../sub/main/search.asp?rWork=TblList&rSchKey=title&rSchText=소각"><span class="rank">8</span>소각</a></li>
+            
+            </ol>
+          </div>
+        </div>
+        
+
+        <fieldset>
+          <legend>검색영역</legend>
+          <input type="text" id="topschtext" name="topschtext" onKeyPress="javascript:KeyCheckTop();" placeholder="검색어를 입력해주세요.">
+          <a onClick="javascript:CallSchTop();"><img src="/img/header_find_icon_2001.png" alt="검색하기"></a>
+        </fieldset>
+      </div><!-- /search --> 
+      <div class="top_slogan"><img src="/img/klca_slogan.png" alt="한국상장회사협의회 슬로건: 상장회사 우리 경제의 희망이고 미래입니다"></div>
+    </div><!-- /wrap --> 
+  </div><!-- /top_area -->
+  <a href="#" class="nav-mobile">전체메뉴</a>
+  <div id="lnb">
+    <div class="wrap">
+      <nav class="nav">
+      <div class="mobile_head">
+        <img src="/img/m_icon_logo.png" alt="한국상장회사협의회">
+        </div>
+        <ul class="lnb_list">
+          <li class="dep1"><a href="../../sub/info/listed_company.asp" class="menu">상장회사 정보</a>
+          <ul class="dep2">
+            <li><a href="../../sub/info/listed_company.asp">상장회사는</a></li>
+            <li><a href="../../sub/info/member_search.asp?rLink=COM">상장회사 정보</a></li>
+            <li><a href="../../sub/info/listed_company_logo.asp">상장회사 마크</a></li>
+            <li><a href="../../sub/info/listed.asp">상장절차 및 요건</a></li>
+            <li><a href="../../sub/info/stockholders_meeting_cp.asp" class="mbo">주총분산 프로그램</a></li>
+            <li><a href="../../sub/info/report_agm_bill.asp">의안 분석 보고서</a></li>
+            <li><a href="../../sub/info/accountant_real_name_system.asp">회계담당자 등록정보</a></li>
+            <li><a href="../../sub/info/record_date.asp">배당기준일 안내</a></li>
+          </ul>
+          </li>
+          <li class="dep1"><a href="../../sub/law/legal_information.asp" class="menu active">상장회사 법규</a>
+          <ul class="dep2">
+            <li><a href="../../sub/law/legal_information.asp" class="mbo">최신법규</a></li>
+            <li><a href="../../sub/law/Progress_legislation.asp" class="mbo">법령 등 제&middot;개정 상황</a></li>
+            <li><a href="../../sub/law/standards.asp" class="mbo">표준규정</a></li>
+            <li><a href="../../sub/law/report_list.asp" class="mbo">신고보고사항</a></li>
+            <li><a href="../../sub/law/check_guide.asp" class="mbo">공첵도우미</a></li>
+            <li><a href="../../sub/law/links_legal_information.asp">법률정보링크</a></li>
+          </ul>
+          </li>
+          <li class="dep1"><a href="../../sub/seminar/application.asp" class="menu" style="letter-spacing:-0.5px">행사&middot;설명회</a>
+          <ul class="dep2">
+            <li><a href="../../sub/seminar/application.asp">신청 및 강의자료</a></li>
+            <li><a href="../../sub/seminar/application_details.asp">신청내역 조회</a></li>
+          </ul>
+          </li>
+          <li class="dep1"><a href="../../sub/data/ebook.asp" class="menu">자료실</a>
+          <ul class="dep2">
+            <li><a href="../../sub/data/ebook.asp" class="mbo">발간자료</a></li>
+            <li><a href="../../sub/data/policy_proposal.asp">건의자료</a></li>
+            <li><a href="../../sub/data/policy_report.asp">정책Report</a></li>
+            <li><a href="../../sub/data/tax_news.asp" class="mbo">세무뉴스</a></li>
+            <li><a href="../../sub/data/other_resources.asp" class="mbo">회계&middot;세무자료</a></li>
+            <li><a href="../../sub/data/kifrs_dictionary.asp">K-IFRS 용어사전</a></li>
+            <li><a href="../../sub/data/stats.asp" class="mbo">통계 알리오</a></li>
+          </ul>
+          </li>
+          <li class="dep1"><a href="../../sub/counsel/counselling_case_faq.asp" class="menu">상담컨설팅</a>
+          <ul class="dep2">
+            <li><a href="../../sub/counsel/counselling_case_faq.asp" class="mbo">상담사례 FAQ</a></li>
+            <li><a href="../../sub/counsel/online_consulting_qna.asp" class="mbo">실무상담 Q&amp;A</a></li>
+            <li><a href="../../sub/counsel/offline_consultation.asp" class="mbo">on&amp;off-line 상담</a></li>
+            <li><a href="../../sub/counsel/customized_education.asp" class="mbo">회원사 방문교육</a></li>
+            <li><a href="../../sub/counsel/counselling_articles_of_association.asp" class="mbo">정관 등 정비컨설팅</a></li>
+            <li><a href="../../sub/counsel/model_stockholders_meeting.asp">시범주주총회</a></li>
+            <li><a href="../../sub/counsel/agm_bill.asp" class="mbo">주총 의안 검토</a></li>
+            <li><a href="../../sub/counsel/ac_counseling_center.asp" class="mbo" style="letter-spacing:-1.5px">감사계약고충상담센터</a></li>
+            <li><a href="../../sub/counsel/taxation_support.asp" class="mbo" style="letter-spacing:-1.5px">금융&middot;세무 분야 지원</a></li>
+          </ul>
+          </li>
+          <li class="dep1"><a href="../../sub/comm/listening_to_opinion.asp" class="menu">소통광장</a>
+          <ul class="dep2">
+            <li><a href="../../sub/comm/listening_to_opinion.asp" class="mbo">회원사 의견 청취</a></li>
+            <li><a href="../../sub/comm/business_report.asp" class="mbo">주요 업무보고</a></li>
+            <li><a href="../../sub/comm/notice.asp">공지사항</a></li>
+            <li><a href="../../sub/comm/klca_news_events.asp">상장협뉴스</a></li>
+            <li><a href="../../sub/comm/official_document.asp" class="mbo">발송공문</a></li>
+            <li><a href="../../sub/comm/news_release.asp">보도자료</a></li>
+            <li><a href="../../sub/comm/klca_commendation.asp" style="letter-spacing:-1px">상장회사 유공자 표창</a></li>
+            <li><a href="../../sub/comm/feedback_on_xbrl_editor.asp" class="mbo" style="letter-spacing:-1px">XBRL 작성기 의견수렴</a></li>
+            <li><a href="../../sub/comm/rental_hall.asp" style="letter-spacing:-1px">상장회사회관 대관서비스</a></li> 
+          </ul>
+          </li>
+          <li class="dep1"><a href="../../sub/klca/purpose_establishment.asp" class="menu">협의회 소개</a>
+          <ul class="dep2">
+            <li><a href="../../sub/klca/purpose_establishment.asp">설립 목적</a></li>
+            <li><a href="../../sub/klca/mission_vision.asp">미션과 비전</a></li>
+            <li><a href="../../sub/klca/slogan.asp">슬로건</a></li>
+            <li><a href="../../sub/klca/company_timeline.asp">연혁</a></li>
+            <li><a href="../../sub/klca/organization.asp">기구&middot;조직</a></li>
+            <li><a href="../../sub/klca/main_business.asp">주요사업</a></li>
+            <li><a href="../../sub/klca/social_contribution.asp">사회공헌</a></li>
+            <li><a href="../../sub/klca/location_office.asp">오시는 길</a></li>
+          </ul>
+          </li>
+          <li class="dep1 ys"><a href="../../sub/edu/education.asp" class="menu">교육연수센터</a>
+          <ul class="dep2">
+            <li><a href="../../sub/edu/education_application.asp">교육연수신청</a></li>
+            <li><a href="../../sub/edu/my_application_details.asp">나의 신청내역</a></li>
+            <li><a href="../../sub/edu/education_schedule.asp">연간교육일정</a></li>
+            <li><a href="../../sub/edu/features_fields.asp">교육특징 및 분야안내</a></li>
+            <li><a href="../../sub/edu/user_guide_edu.asp">이용안내</a></li>
+            <li><a href="../../sub/edu/edu_notice.asp">연수 공지사항</a></li>
+          </ul>
+          </li> 
+        </ul>
+      </nav>
+    </div><!-- /wrap --> 
+    <div class='sub_bg'></div>
+  </div><!-- /lnb -->
+    
+  
+  <div class="page_nav">
+    <ol>
+      <li><a href="/index.asp">HOME</a></li>
+      <li>상장회사 법규
+        <div class="under_pn">
+          <ul>
+            <li><a href="../../sub/law/legal_information.asp" class="mbo">최신법규</a></li>
+            <li><a href="../../sub/law/Progress_legislation.asp" class="mbo">법령 등 제&middot;개정 상황</a></li>
+            <li><a href="../../sub/law/standards.asp" class="mbo">표준규정</a></li>
+            <li><a href="../../sub/law/report_list.asp" class="mbo">신고보고사항</a></li>
+            <li><a href="../../sub/law/check_guide.asp" class="mbo">공첵도우미</a></li>
+            <li><a href="../../sub/law/links_legal_information.asp">법률정보링크</a></li>
+          </ul>
+        </div>
+      </li>
+      <li>최신법규</li>
+    </ol>
+  </div>
+  
+
+</header>
+
+
+<div class="wrap">
+  <div class="side_location s02">
+    <h1>상장회사 법규</h1>
+    <ul class="snb_down">
+      <li><a href="legal_information.asp" class="s02l01 active">최신법규</a></li>
+      <li><a href="progress_legislation.asp" class="s02l06 ">법령 등 제&middot;개정 상황</a></li>
+      <li><a href="standards.asp" class="s02l02 ">표준규정</a></li>
+      <li><a href="report_list.asp" class="s02l03 ">신고보고사항</a></li>
+      <li><a href="check_guide.asp" class="s02l04 ">공첵도우미</a></li>
+      <li><a href="links_legal_information.asp" class="s02l05 ">법률정보링크</a></li>
+    </ul>
+  </div><!-- /location -->
+
+
+<script language="javascript">
+function KeyCheck() {
+  if (event.keyCode==13) CallSch();
+}
+	
+function CallSch() {
+	var sParam = "";
+	sParam = sParam + "&rSchText=" + document.all.schtext.value.trim();
+
+	window.location = "legal_information.asp?rWork=TblList"+sParam;
+}
+</script>
+
+<div id="con_body">
+	<div class="wrapper">
+		<div class="con_title titbg04">
+			<h2>최신법규</h2>
+			<p class="tit_sub">상장회사 관련 최신 법령과 규정 알림</p>
+		</div>
+		<!-- /title -->
+		<div class="searchbox">
+			<fieldset class="search">
+				<legend class="notxt">게시판 내 검색</legend>
+				<input type="text" id="schtext" name="schtext" value="" onKeyPress="javascript:KeyCheck();" title="검색어 입력">
+				<a class="btn serb" onClick="javascript:CallSch();">검색하기</a>
+				
+			</fieldset>
+		</div>
+		<!-- /searchbox -->
+
+	
+		<ul class="nav_category nc3">
+      
+			<li class="active"><a href="legal_information.asp?rType=0&rSchText=">전체보기</a></li>
+      
+			<li><a href="legal_information.asp?rType=1&rSchText=">법률&middot;공시</a></li>
+      
+			<li><a href="legal_information.asp?rType=2&rSchText=">회계&middot;세무</a></li>
+      			
+		</ul>
+		<div class="board_top">
+			<p class="result">총 <strong class="blt">832</strong> 건</p>
+		</div>
+		
+		<!-- /board_top -->		
+		<table class="board_normal bn_nt bn_2_2">
+			<caption>최신법규</caption>
+			<thead>
+				<tr>
+					<th width="5%" scope="col">번호</th>
+					<th width="63%" scope="col">제목</th>
+					<th width="12%" scope="col">일자</th>
+					<th width="12%" scope="col">등록자</th>
+					<th width="8%" scope="col">조회</th>
+				</tr>
+			</thead>
+			<tbody>
+					
+				<tr>
+					<td>832</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=833&rGotoPage=1&rSchText=&rType=0">「기업공시서식 작성기준」 개정 안내(2026. 7. 23. 시행)</a></td>
+					<td>2026-07-23</td>
+					<td>기업법제팀</td>
+					<td>42</td>
+				</tr>
+					
+				<tr>
+					<td>831</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=832&rGotoPage=1&rSchText=&rType=0">「상법 시행령」 일부 개정(2026. 7. 21. 자)</a></td>
+					<td>2026-07-21</td>
+					<td>기업법제팀</td>
+					<td>164</td>
+				</tr>
+					
+				<tr>
+					<td>830</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=831&rGotoPage=1&rSchText=&rType=0">「외부감사 및 회계 등에 관한 규정 시행세칙」 일부개정(2026.7.10. 시행)</a></td>
+					<td>2026-07-14</td>
+					<td>기업회계팀</td>
+					<td>98</td>
+				</tr>
+					
+				<tr>
+					<td>829</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=830&rGotoPage=1&rSchText=&rType=0">「유가증권시장 공시규정」 일부 개정(2026. 7. 2. 시행)</a></td>
+					<td>2026-07-02</td>
+					<td>기업법제팀</td>
+					<td>309</td>
+				</tr>
+					
+				<tr>
+					<td>828</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=829&rGotoPage=1&rSchText=&rType=0">「기업공시서식 작성기준」 개정(2026. 6. 30. 시행)</a></td>
+					<td>2026-06-30</td>
+					<td>기업법제팀</td>
+					<td>573</td>
+				</tr>
+					
+				<tr>
+					<td>827</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=828&rGotoPage=1&rSchText=&rType=0">「외부감사 및 회계 등에 관한 규정 시행세칙」 개정 사전예고</a></td>
+					<td>2026-06-25</td>
+					<td>기업회계팀</td>
+					<td>138</td>
+				</tr>
+					
+				<tr>
+					<td>826</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=827&rGotoPage=1&rSchText=&rType=0">「외부감사 및 회계 등에 관한 규정 시행세칙」 일부개정(2026.5.27. 시행)</a></td>
+					<td>2026-05-27</td>
+					<td>기업회계팀</td>
+					<td>313</td>
+				</tr>
+					
+				<tr>
+					<td>825</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=826&rGotoPage=1&rSchText=&rType=0">「주식회사 등의 외부감사에 관한 법률 시행령」 일부개정(2026.5.26. 시행)</a></td>
+					<td>2026-05-27</td>
+					<td>기업회계팀</td>
+					<td>196</td>
+				</tr>
+					
+				<tr>
+					<td>824</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=825&rGotoPage=1&rSchText=&rType=0">「유가증권시장 상장규정」 개정(부실기업 신속·엄정 퇴출을 위한 상장폐지 개혁방안 관련 조치)</a></td>
+					<td>2026-05-14</td>
+					<td>기업법제팀</td>
+					<td>440</td>
+				</tr>
+					
+				<tr>
+					<td>823</td>
+					<td class="subject"><a href="legal_information.asp?rWork=TblRead&rNo=824&rGotoPage=1&rSchText=&rType=0">「외부감사 및 회계 등에 관한 규정 시행세칙」 개정 사전예고</a></td>
+					<td>2026-05-06</td>
+					<td>기업회계팀</td>
+					<td>302</td>
+				</tr>
+
+			</tbody>
+		</table>
+		<div class="under_btnarea">
+			
+			<div class="paging">
+  		
+          <a class="pg_on" title="현재 페이지입니다.">1</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=2&rSchText=&rType=0" title="2페이지로 이동">2</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=3&rSchText=&rType=0" title="3페이지로 이동">3</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=4&rSchText=&rType=0" title="4페이지로 이동">4</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=5&rSchText=&rType=0" title="5페이지로 이동">5</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=6&rSchText=&rType=0" title="6페이지로 이동">6</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=7&rSchText=&rType=0" title="7페이지로 이동">7</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=8&rSchText=&rType=0" title="8페이지로 이동">8</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=9&rSchText=&rType=0" title="9페이지로 이동">9</a>
+         
+          <a href="legal_information.asp?rWork=TblList&rGotoPage=10&rSchText=&rType=0" title="10페이지로 이동">10</a>
+        
+        <a href="legal_information.asp?rWork=TblList&rGotoPage=84&rSchText=&rType=0" title="끝페이지로 이동">..84</a>	
+        <a class="pg_next" href="legal_information.asp?rWork=TblList&rGotoPage=11&rSchText=&rType=0">다음 10개 페이지</a>
+      						
+			</div><!-- /paging -->
+		</div><!-- /under_btnarea --> 
+		<div class='contact double'><span><strong>법률&middot;공시</strong> 기업법제팀 02-2087-7151,3~6</span><span><strong>회계</strong> 기업회계팀 02-2087-7191~5</span><span><strong>세무</strong> 경제조사팀 02-2087-7201~3</span></div>
+	</div><!-- /wrapper --> 
+</div><!-- /content --> 
+
+
+</div><!-- /con_wrap -->
+
+<footer id="footer">
+  <div class="wrap">
+    <ul class="f_menu">
+      <li><a href="../../sub/main/privacy.asp"><strong>개인정보처리방침</strong></a></li>
+      <li><a href="../../sub/main/video.asp">영상정보처리기기 운영&middot;관리 방침</a></li>
+      <li><a href="../../sub/main/nospam.asp">이메일 무단수집 거부</a></li>
+      <li><a href="../../sub/klca/location_office.asp">오시는 길</a></li>
+      <li><a href="../../sub/main/viewer.asp">문서뷰어 다운로드</a></li>
+      <li><a href="../../sub/main/sitemap.asp">Sitemap</a></li>
+    </ul>
+    <div class="relate_site">
+      <label for="relate_site" class="hidden">관계기관 링크</label>
+      <select id="relate_site" name="relate_site">
+        <option value="">= 유관기관 링크 =</option>
+        <option value="https://www.moef.go.kr">기획재정부</option>
+        <option value="https://www.fsc.go.kr">금융위원회</option>
+        <option value="https://www.fss.or.kr">금융감독원</option>
+        <option value="https://www.krx.co.kr">한국거래소</option>
+        <option value="https://www.ksd.or.kr">한국예탁결제원</option>
+        <option value="https://www.ksfc.co.kr">한국증권금융</option>
+        <option value="https://www.koscom.co.kr">KOSCOM</option>
+        <option value="https://www.kofia.or.kr">금융투자협회</option>
+        <option value="https://www.kirs.or.kr">한국IR협의회</option>
+        <option value="http://www.kosdaqca.or.kr">코스닥협회</option>
+        <option value="https://www.cgs.or.kr">한국ESG기준원</option>
+        <option value="http://www.kcmi.re.kr">자본시장연구원</option> 
+        <option value="http://www.iksa.or.kr">한국증권학회</option>
+        <option value="http://www.ksla.org/">한국증권법학회</option>
+        <option value="https://www.kicpa.or.kr">한국공인회계사회</option>
+        <option value="https://www.fki.or.kr">한국경제인협회</option>
+        <option value="https://www.korcham.net">대한상공회의소</option>
+        <option value="https://www.kefplaza.com">한국경영자총협회</option>
+        <option value="http://www.kcab.or.kr">대한상사중재원</option>
+        <option value="https://www.korearatings.com">한국기업평가</option>
+        <option value="https://www.kisrating.com">한국신용평가</option>
+        <option value="https://www.niceinfo.co.kr">한국신용정보</option>
+        <option value="https://www.mginfo.co.kr">MG신용정보</option>
+        <option value="https://www.kabukon.tokyo/">동경주식간화회</option>
+      </select>
+      <input onClick="if(document.all.relate_site.value) window.open(document.all.relate_site.value);" type="button" value="이동" class="btn b01" title="새창열림">
+      </div>
+    <p>04151 서울 마포구 독막로 279(대흥동) 상장회사회관 <span></span>T.02-2087-7000<br>
+      CopyRight ⓒ2015 Korea Listed Companies Association. All Rights Reserved.</p>
+  </div><!-- /wrap --> 
+</footer>
+
+</body>
+</html>

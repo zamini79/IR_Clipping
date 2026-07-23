@@ -6,13 +6,17 @@ import { uploadAttachment } from "@/lib/collectors/attachments";
 import { buildDigest } from "@/lib/notify/digest";
 import { sendDigest } from "@/lib/notify/mailer";
 import { fscBodoCollector } from "@/lib/collectors/fsc-bodo";
+import { fscRegCollector } from "@/lib/collectors/fsc-reg";
+import { ftcBodoCollector } from "@/lib/collectors/ftc-bodo";
+import { klcaDocCollector } from "@/lib/collectors/klca-doc";
+import { klcaLawCollector } from "@/lib/collectors/klca-law";
 import type { CollectedItem } from "@/lib/collectors/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const COLLECTORS = [fscBodoCollector]; // Task 7,8에서 추가
+const COLLECTORS = [fscBodoCollector, fscRegCollector, ftcBodoCollector, klcaDocCollector, klcaLawCollector]; // Task 8에서 추가
 
 export async function POST(req: Request) {
   if (req.headers.get("x-cron-secret") !== process.env.CRON_SECRET) {
