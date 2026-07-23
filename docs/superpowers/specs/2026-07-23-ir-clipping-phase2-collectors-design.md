@@ -20,6 +20,7 @@
 | 스케줄러 | **GitHub Actions 스케줄 워크플로**(cron `0 * * * *`)가 Vercel의 보호된 `/api/collect` 호출. (Vercel Hobby Cron은 1일 1회 제한이므로.) Vercel Pro면 Vercel Cron으로 대체 가능. |
 | 적재 권한 | 서버에서 Supabase **service_role 키**로 upsert(RLS 우회). 클라이언트 노출 금지. |
 | 알림 형태 | 실행 1회당 **신규 항목을 모은 다이제스트 1통**(출처별 그룹, 각 항목 제목+링크). 신규 0건이면 미발송. |
+| 첨부파일 | **실제 파일을 Supabase Storage에 복제 저장**(영구 아카이브). 게시판은 서명 URL로 다운로드 제공. |
 
 ## 3. 수집 대상 (7개, 전부 `disclosure` 카테고리)
 
@@ -62,7 +63,10 @@ GitHub Actions (cron 매시간)
 - **UNIQUE (`board`, `source_ref`)** — 중복 방지 키.
 
 `clipping_files`에 컬럼 추가:
-- `external_url` text — 원본 첨부 다운로드 URL(파일을 Storage에 복제하지 않고 링크).
+- `external_url` text — 원본 첨부 다운로드 URL(출처 추적/재수집용 기록).
+- (`storage_path`는 기존 컬럼 사용 — Storage에 업로드한 실제 파일 경로.)
+
+Supabase **Storage 버킷 `clipping-files`** 사용. 수집기가 원본 파일을 내려받아 `{board}/{source_ref}/{파일명}` 경로로 업로드하고 `storage_path`에 기록. 다운로드는 서버에서 서명 URL(signed URL) 생성해 제공. 버킷은 비공개(공개 버킷 대신 서명 URL) 권장.
 
 신규 테이블 `alert_recipients`:
 | 컬럼 | 타입 | 설명 |
@@ -86,7 +90,7 @@ interface CollectedItem {
   collectedAt: string;    // 게시일 ISO (없으면 수집시각)
   sourceUrl: string;      // 원문 링크
   body: string;           // 요약/본문(없으면 "")
-  files: { name: string; externalUrl: string }[];
+  files: { name: string; externalUrl: string }[];  // externalUrl에서 다운로드 → Storage 업로드
 }
 interface Collector { board: string; source: string; collect(): Promise<CollectedItem[]>; }
 ```
@@ -112,15 +116,15 @@ interface Collector { board: string; source: string; collect(): Promise<Collecte
 
 ## 9. 게시판(Phase 1) 소폭 연동
 
-- `DetailModal`의 "다운로드"를 `clipping_files.external_url` 링크로 연결(있을 때). 없으면 기존처럼 표시만.
+- `DetailModal`의 "다운로드"를 `storage_path` 기반 **서명 URL**로 연결(서버에서 생성). 없으면 기존처럼 표시만.
 - `source_url`이 있으면 상세 모달에 "원문 보기" 링크 추가(선택).
 - "최근 수집" 시각을 마지막 성공 수집 시각으로 표시(선택; 별도 상태 테이블 또는 max(created_at)).
 
 ## 10. 단계적 구현 순서 (수직 슬라이스)
 
-1. **DB 마이그레이션 0002** + `alert_recipients` 시드(담당자 이메일).
-2. **수집 파이프라인 골격**: `/api/collect`(Node, CRON_SECRET), 공통 인터페이스, upsert 로직, 다이제스트 이메일(Nodemailer). 수집기 1개(금융위 보도자료 RSS)로 엔드투엔드 완성 + 테스트.
-3. **HTML 수집기 추가**: 금융위 소관규정, 공정위 보도자료, KLCA 2종.
+1. **DB 마이그레이션 0002** + Storage 버킷 `clipping-files`(비공개) 생성 + `alert_recipients` 시드(담당자 이메일).
+2. **수집 파이프라인 골격**: `/api/collect`(Node, CRON_SECRET), 공통 인터페이스, upsert 로직, **첨부 다운로드→Storage 업로드 유틸**, 다이제스트 이메일(Nodemailer). 수집기 1개(금융위 보도자료 RSS)로 엔드투엔드 완성 + 테스트.
+3. **HTML 수집기 추가**(첨부 복제 포함): 금융위 소관규정, 공정위 보도자료, KLCA 2종.
 4. **DART 2종**(JS `search()` 요청 재현) 추가.
 5. **GitHub Actions 스케줄 워크플로**(매시간) 연결 + Vercel 환경변수 설정.
 6. (선택) 게시판 다운로드/원문 링크 연동, 최근 수집 시각 표시.
@@ -131,11 +135,11 @@ interface Collector { board: string; source: string; collect(): Promise<Collecte
 - **약관/로봇**: 공개 정부·협회 자료이나 각 사이트 robots.txt/이용약관 확인, 정중한 주기(1시간)·User-Agent 명시.
 - **Gmail 한도/차단**: 개인 Gmail 발송 한도(~500/일) 내. sk.com이 아닌 개인 Gmail이라 Workspace 정책 이슈 없음. 앱 비밀번호는 2단계 인증 필요.
 - **JS 구동 DART**: `search()`의 실제 요청(파라미터/POST) 분석 필요 — 구현 시 1회 조사 태스크 포함.
-- **본문/첨부**: MVP는 제목·출처·부서·게시일·원문링크 중심. 본문·첨부는 best-effort(상세 페이지 파싱).
+- **본문**: MVP는 제목·출처·부서·게시일·원문링크 중심. 본문은 best-effort(상세 페이지 파싱).
+- **첨부 복제**: 파일을 Storage에 저장. 대용량 HWP/PDF 다수 → 실행당 다운로드 크기/시간 상한 고려(예: 파일당 최대 크기 제한, 실패 시 external_url만 기록하고 계속). 동일 파일 재업로드 방지(경로에 source_ref 포함, 이미 있으면 skip). Storage 용량·요금 모니터링.
 
 ## 12. 범위 밖 (향후)
 
 - FnGuide 탭 수집(유료 로그인 필요 — 별도 스펙에서 방식 확정).
-- 첨부파일 Supabase Storage 복제(현재는 원본 링크).
 - 관리자 UI(수신자·수집기 관리 화면).
 - 전체 이력 백필(대량 과거 게시물 적재).
