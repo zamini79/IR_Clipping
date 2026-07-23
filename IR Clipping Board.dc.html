@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#eceae3;font-family:"Pretendard",system-ui,sans-serif}
+  a{color:inherit;text-decoration:none}
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;justify-content:center;padding:40px 20px;background:#eceae3">
+  <div style="width:1040px;max-width:100%;background:#fbfaf6;border-radius:12px;box-shadow:0 24px 60px -24px rgba(20,26,45,.35),0 2px 8px rgba(0,0,0,.06);overflow:hidden">
+
+    <!-- top -->
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:28px 36px 0">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font:600 10px/1 'IBM Plex Mono',monospace;letter-spacing:.28em;color:#9a7b46">IR CLIPPING</div>
+        <div style="font:600 24px/1 'Noto Serif KR',serif;color:#1a2338;letter-spacing:-.01em">공시 · 규제 클리핑</div>
+      </div>
+      <div style="font:500 11.5px/1.5 'Pretendard';color:#8a8f99;text-align:right">최근 수집<b style="display:block;color:#3a4150;font-weight:600">{{ updated }}</b></div>
+    </div>
+
+    <!-- tabs -->
+    <div style="display:flex;gap:2px;padding:22px 36px 0;border-bottom:1px solid #e6e2d7">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+        <div onClick="{{ t.select }}" style="{{ t.style }}">{{ t.label }}<span style="{{ t.numStyle }}">{{ t.count }}</span></div>
+      </sc-for>
+    </div>
+
+    <!-- bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 36px 14px">
+      <div style="font:500 12px 'Pretendard';color:#8a8f99">검색결과 <b style="color:#1a2338;font-weight:600">{{ total }}건</b> · <b style="color:#1a2338;font-weight:600">{{ activeLabel }}</b></div>
+      <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e6e2d7;border-radius:7px;padding:0 12px;width:240px">
+        <span style="color:#b3b7c0;font-size:13px">⌕</span>
+        <input value="{{ query }}" onInput="{{ onSearch }}" placeholder="제목 · 담당부서 검색" style="border:0;outline:0;background:transparent;padding:9px 0;width:100%;font:400 12.5px 'Pretendard';color:#20242c" />
+      </div>
+    </div>
+
+    <!-- header -->
+    <div style="display:grid;grid-template-columns:52px 1fr 130px 96px 68px;padding:0 36px;border-top:1px solid #1a2338;border-bottom:1px solid #e6e2d7">
+      <span style="padding:11px 0;font:600 10.5px/1 'Pretendard';letter-spacing:.06em;color:#8a8f99">No</span>
+      <span style="padding:11px 0;font:600 10.5px/1 'Pretendard';letter-spacing:.06em;color:#8a8f99">제목</span>
+      <span style="padding:11px 0;font:600 10.5px/1 'Pretendard';letter-spacing:.06em;color:#8a8f99">담당부서</span>
+      <span style="padding:11px 0;font:600 10.5px/1 'Pretendard';letter-spacing:.06em;color:#8a8f99">등록일</span>
+      <span style="padding:11px 0;font:600 10.5px/1 'Pretendard';letter-spacing:.06em;color:#8a8f99;text-align:right">첨부</span>
+    </div>
+
+    <!-- rows -->
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+      <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:52px 1fr 130px 96px 68px;padding:0 36px;align-items:center;border-bottom:1px solid #efece3;cursor:pointer;background:{{ r.bg }}">
+        <div style="font:500 12px 'IBM Plex Mono';color:#b3b7c0">{{ r.no }}</div>
+        <div style="padding:16px 0;display:flex;flex-direction:column;gap:5px;min-width:0">
+          <div style="font:500 14.5px/1.35 'Pretendard';color:#20242c;letter-spacing:-.01em">{{ r.title }}<span style="{{ r.newStyle }}">NEW</span></div>
+          <div style="font:500 11px 'Pretendard';color:#9a7b46">{{ r.src }}</div>
+        </div>
+        <div style="font:500 12px 'Pretendard';color:#4a5160">{{ r.dept }}</div>
+        <div style="font:500 12.5px 'IBM Plex Mono';color:#6a7180">{{ r.date }}</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;font:600 12px 'IBM Plex Mono';color:{{ r.attColor }}">{{ r.att }}</div>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:56px;text-align:center;font:500 13px 'Pretendard';color:#a0a4ad">검색 결과가 없습니다.</div>
+    </sc-if>
+
+    <!-- footer -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:24px">
+      <sc-for list="{{ pages }}" as="p" hint-placeholder-count="3">
+        <div onClick="{{ p.go }}" style="{{ p.style }}">{{ p.label }}</div>
+      </sc-for>
+    </div>
+
+  </div>
+</div>
+
+<!-- detail modal -->
+<sc-if value="{{ detail }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeDetail }}" style="position:fixed;inset:0;background:rgba(20,26,45,.4);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50">
+    <div onClick="{{ stop }}" style="width:640px;max-width:100%;background:#fbfaf6;border-radius:12px;box-shadow:0 30px 70px -20px rgba(20,26,45,.5);overflow:hidden">
+      <div style="padding:26px 32px;border-bottom:1px solid #e6e2d7">
+        <div style="display:flex;align-items:center;gap:8px;font:600 11px 'Pretendard';color:#9a7b46">{{ detail.src }}<span style="color:#cfc9bd">·</span><span style="color:#8a8f99;font-weight:500">{{ activeLabel }}</span></div>
+        <div style="margin-top:9px;font:600 20px/1.4 'Noto Serif KR',serif;color:#1a2338;letter-spacing:-.01em;text-wrap:pretty">{{ detail.title }}</div>
+        <div style="margin-top:14px;display:flex;gap:20px;font:500 12px 'Pretendard';color:#6a7180">
+          <span>담당부서 <b style="color:#3a4150;margin-left:4px">{{ detail.dept }}</b></span>
+          <span>등록일 <b style="color:#3a4150;margin-left:4px;font-family:'IBM Plex Mono'">{{ detail.date }}</b></span>
+        </div>
+      </div>
+      <div style="padding:26px 32px;font:400 13.5px/1.8 'Pretendard';color:#3a4150">{{ detail.body }}</div>
+      <div style="padding:0 32px 28px">
+        <div style="font:600 10.5px 'Pretendard';letter-spacing:.06em;color:#8a8f99;margin-bottom:10px">첨부파일</div>
+        <sc-for list="{{ detail.files }}" as="f" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:#fff;border:1px solid #e6e2d7;border-radius:8px;margin-bottom:8px">
+            <span style="font-size:15px">📎</span>
+            <span style="font:500 13px 'Pretendard';color:#20242c;flex:1">{{ f.name }}</span>
+            <span style="font:500 11px 'IBM Plex Mono';color:#9aa0ab">{{ f.size }}</span>
+            <span style="font:600 11.5px 'Pretendard';color:#9a7b46">다운로드</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{ detail.noFile }}" hint-placeholder-val="{{ false }}">
+          <div style="font:500 12.5px 'Pretendard';color:#a0a4ad">첨부파일 없음</div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: 0, query: "", page: 0, detailId: null };
+
+  data() {
+    return [
+      { // 공시법규 규정
+        label: "공시법규 규정",
+        items: [
+          { title:"2026년 사업보고서 기재요령 개정 안내", src:"금융감독원", dept:"공시제도팀", date:"2026.07.21", files:[{name:"사업보고서_기재요령_개정.pdf",size:"1.8MB"},{name:"신구조문대비표.xlsx",size:"320KB"}], body:"금융감독원이 2026년 사업보고서 기재요령을 개정·공지했습니다. 주요 개정 사항과 적용 시점, 실무 체크포인트를 정리한 자료입니다." },
+          { title:"ESG 지속가능경영보고서 공시 의무화 단계별 일정", src:"한국거래소", dept:"IR기획팀", date:"2026.07.18", files:[{name:"ESG공시_로드맵.pdf",size:"2.4MB"}], body:"자산규모별 ESG 공시 의무화 도입 일정과 준비 사항을 단계별로 안내합니다." },
+          { title:"주요사항보고서 제출기한 관련 실무 유의사항", src:"금융위원회", dept:"공시제도팀", date:"2026.07.15", files:[{name:"주요사항보고서_유의사항.pdf",size:"960KB"},{name:"제출_체크리스트.docx",size:"180KB"},{name:"FAQ.pdf",size:"540KB"}], body:"주요사항보고서 제출기한 산정 및 지연 시 제재 관련 유의사항입니다." },
+          { title:"내부정보 관리규정 개정 — 자기주식 취득 신고 절차", src:"내부 규정", dept:"준법지원팀", date:"2026.07.11", files:[{name:"내부정보관리규정_개정본.pdf",size:"720KB"}], body:"자기주식 취득·처분 시 내부 신고 절차가 강화되었습니다. 변경된 승인 라인을 확인하세요." },
+          { title:"공정공시 대상 확대 관련 실무 가이드라인", src:"한국거래소", dept:"공시제도팀", date:"2026.07.08", files:[{name:"공정공시_가이드.pdf",size:"1.1MB"},{name:"사례집.pdf",size:"2.0MB"}], body:"공정공시 적용 대상 확대에 따른 실무 대응 가이드라인입니다." },
+          { title:"분기보고서 XBRL 재무제표 작성 매뉴얼 (v3.2)", src:"재무회계팀", dept:"재무회계팀", date:"2026.07.03", files:[], body:"XBRL 재무제표 작성 매뉴얼 v3.2 버전입니다." },
+          { title:"임원·주요주주 소유상황보고 제출 안내", src:"금융감독원", dept:"준법지원팀", date:"2026.06.27", files:[{name:"소유상황보고_안내.pdf",size:"640KB"}], body:"임원 및 주요주주 특정증권등 소유상황보고서 제출 관련 안내입니다." },
+          { title:"연결재무제표 주석 공시 강화 방안", src:"금융위원회", dept:"재무회계팀", date:"2026.06.20", files:[{name:"주석공시_강화방안.pdf",size:"880KB"}], body:"연결재무제표 주석 공시 항목이 확대됩니다." },
+        ]
+      },
+      { // FnGuide
+        label: "FnGuide",
+        items: [
+          { title:"2Q26 실적 컨센서스 프리뷰 — 반도체 섹터", src:"FnGuide", dept:"IR기획팀", date:"2026.07.22", files:[{name:"2Q26_컨센서스_프리뷰.pdf",size:"1.5MB"}], body:"FnGuide 컨센서스 기준 2분기 실적 전망과 당사 가이던스 비교 자료입니다." },
+          { title:"산업 동향 위클리 — 07월 3주차", src:"FnGuide", dept:"IR기획팀", date:"2026.07.19", files:[{name:"산업동향_0719.pdf",size:"2.2MB"}], body:"주요 산업 지표 및 경쟁사 동향 주간 리포트입니다." },
+          { title:"당사 목표주가 컨센서스 변동 요약", src:"FnGuide", dept:"IR기획팀", date:"2026.07.16", files:[{name:"목표주가_컨센서스.xlsx",size:"260KB"}], body:"증권사별 목표주가 및 투자의견 변동 내역을 요약했습니다." },
+          { title:"기관 수급 및 외국인 지분율 리포트", src:"FnGuide", dept:"IR기획팀", date:"2026.07.12", files:[{name:"수급리포트.pdf",size:"1.0MB"}], body:"최근 기관/외국인 매매 동향과 지분율 추이 분석입니다." },
+          { title:"경쟁사 실적 비교 데이터셋 (2Q26)", src:"FnGuide", dept:"재무회계팀", date:"2026.07.05", files:[], body:"동종업계 경쟁사 실적 비교 데이터입니다." },
+        ]
+      }
+    ];
+  }
+
+  perPage = 6;
+
+  renderVals() {
+    const data = this.data();
+    const { tab, query, page, detailId } = this.state;
+    const q = query.trim().toLowerCase();
+
+    const tabs = data.map((d, i) => ({
+      label: d.label,
+      count: d.items.length,
+      select: () => this.setState({ tab: i, page: 0, query: "" }),
+      style: `padding:12px 20px 14px;font:600 14px/1 'Pretendard';cursor:pointer;border-bottom:2px solid ${i===tab?'#9a7b46':'transparent'};color:${i===tab?'#1a2338':'#a0a4ad'}`,
+      numStyle: `font:600 10px 'IBM Plex Mono';color:${i===tab?'#c2a86e':'#cbcdd3'};margin-left:7px;vertical-align:super`,
+    }));
+
+    const all = data[tab].items;
+    const filtered = all.filter(it => !q || it.title.toLowerCase().includes(q) || it.dept.toLowerCase().includes(q) || (it.src||'').toLowerCase().includes(q));
+    const total = filtered.length;
+    const pageCount = Math.max(1, Math.ceil(total / this.perPage));
+    const cur = Math.min(page, pageCount - 1);
+    const slice = filtered.slice(cur*this.perPage, cur*this.perPage + this.perPage);
+
+    const rows = slice.map((it) => {
+      const globalNo = all.length - all.indexOf(it);
+      const isNew = all.indexOf(it) < 2;
+      return {
+        no: String(globalNo).padStart(2,'0'),
+        title: it.title,
+        src: it.src,
+        dept: it.dept,
+        date: it.date,
+        att: it.files.length ? `📎 ${it.files.length}` : '—',
+        attColor: it.files.length ? '#8a8f99' : '#cfd2d8',
+        bg: '#fbfaf6',
+        newStyle: isNew ? "display:inline-block;margin-left:7px;font:700 9px/1 'IBM Plex Mono';color:#b23b3b;vertical-align:middle" : 'display:none',
+        open: () => this.setState({ detailId: all.indexOf(it) }),
+      };
+    });
+
+    const pages = [];
+    pages.push({ label:'‹', go:()=>this.setState({page:Math.max(0,cur-1)}), style:this.pgStyle(false) });
+    for (let i=0;i<pageCount;i++) pages.push({ label:String(i+1), go:()=>this.setState({page:i}), style:this.pgStyle(i===cur) });
+    pages.push({ label:'›', go:()=>this.setState({page:Math.min(pageCount-1,cur+1)}), style:this.pgStyle(false) });
+
+    let detail = null;
+    if (detailId !== null && all[detailId]) {
+      const d = all[detailId];
+      detail = { ...d, noFile: d.files.length === 0 };
+    }
+
+    return {
+      updated: "2026.07.22 09:12",
+      tabs, total, activeLabel: data[tab].label,
+      query, onSearch: (e)=>this.setState({query:e.target.value, page:0}),
+      rows, empty: total === 0, pages,
+      detail, closeDetail: ()=>this.setState({detailId:null}), stop:(e)=>e.stopPropagation(),
+    };
+  }
+
+  pgStyle(on){
+    return `width:30px;height:30px;display:grid;place-items:center;border-radius:6px;cursor:pointer;font:600 12px 'IBM Plex Mono';${on?'background:#1a2338;color:#fff':'color:#8a8f99'}`;
+  }
+}
+</script>
+</body>
+</html>
