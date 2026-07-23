@@ -7,13 +7,16 @@ function make(n: number): Clipping[] {
   return Array.from({ length: n }, (_, i) => ({
     id: `id-${i}`,
     category: "disclosure" as const,
+    board: "seed",
     title: `제목 ${i}`,
     source: i === 0 ? "금융감독원" : "한국거래소",
+    sourceRef: `id-${i}`,
+    sourceUrl: "",
     department: i === 1 ? "IR기획팀" : "공시제도팀",
     body: "본문",
     collectedAt: "2026-07-21T00:00:00.000Z",
     createdAt: "2026-07-21T00:00:00.000Z",
-    files: i % 2 === 0 ? [{ id: `f-${i}`, name: "a.pdf", size: "1MB", storagePath: "p" }] : [],
+    files: i % 2 === 0 ? [{ id: `f-${i}`, name: "a.pdf", size: "1MB", storagePath: "p", externalUrl: "" }] : [],
   }));
 }
 
