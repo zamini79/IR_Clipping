@@ -151,3 +151,25 @@
 ## Files
 - `IR Clipping Board.dc.html` — **구현 대상** (채택안 1a: Ledger). 목록 + 탭 + 검색 + 페이지네이션 + 상세 모달.
 - `IR Clipping Concepts.dc.html` — 초기 3개 컨셉 비교(1a Ledger / 1b 에디토리얼 / 1c 다크 터미널). 참고용.
+
+## 실행 (Phase 1 구현체)
+
+```bash
+npm install
+cp .env.example .env.local   # Supabase URL/키 입력
+# Supabase SQL Editor에서 supabase/migrations/0001_init.sql 실행
+npm run seed                 # 시드 데이터 13건 삽입
+npm run dev                  # http://localhost:3000
+```
+
+명령:
+- `npm run dev` — 개발 서버
+- `npm run build` — 프로덕션 빌드
+- `npm test` — 단위/컴포넌트 테스트
+- `npm run seed` — 시드 데이터 재적재(멱등)
+
+## 배포 (Vercel)
+1. GitHub 레포에 push.
+2. Vercel에서 레포 import.
+3. 환경변수 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` 설정.
+4. 배포. push 시 자동 재배포.

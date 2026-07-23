@@ -4,16 +4,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-This is a **design handoff bundle**, not a runnable application. It specifies the UI for the *IR 클리핑 게시판 (IR Clipping Board)* — an internal board for a corporate IR team that auto-clips disclosure-regulation news and FnGuide research from external sites into one place. Posts are ingested into a DB by a separate collection process (not authored by users); this screen reads that DB and renders a list.
+This is now a **working Next.js application** (Phase 1 implementation complete), not just a design handoff bundle. It implements the *IR 클리핑 게시판 (IR Clipping Board)* — an internal board for a corporate IR team that auto-clips disclosure-regulation news and FnGuide research from external sites into one place. Posts are ingested into a DB by a separate collection process (not authored by users); this app reads that DB (Supabase Postgres) and renders the list/search/pagination/detail-modal UI.
 
-The deliverable is a **re-implementation** of the design in a target codebase's existing stack (React, Vue, server-side templates, etc.) using that project's own patterns and libraries. The files here are the reference, not code to copy into production.
+**Stack**: Next.js 16 (App Router, TypeScript) + Supabase (Postgres + RLS, read-only public access) + Vercel (hosting/CD).
+
+**Key commands**:
+- `npm run dev` — dev server (`http://localhost:3000`)
+- `npm run build` — production build
+- `npm test` — unit/component tests (Vitest)
+- `npm run seed` — (re-)load seed data into Supabase (idempotent)
+
+See the "실행 (Phase 1 구현체)" and "배포 (Vercel)" sections at the bottom of this README for full setup/deploy steps.
+
+**Core logic pointers**:
+- `lib/board-view.ts` — pure view-transform logic (tab filter, search, pagination, NEW-badge, No numbering). Test-first; no I/O.
+- `lib/data.ts` — data access layer (Supabase queries, row→`Clipping` mapping).
+- `components/Board.tsx` — top-level client container wiring state (`activeTab`/`query`/`page`/`detailId`) to `lib/board-view.ts` and the presentational components (`BoardTable.tsx`, `SearchBar.tsx`, `Pagination.tsx`, `DetailModal.tsx`).
+
+**Design origin**: the visual design still originates from the `.dc.html` mockup below plus the design-token spec in this README (colors/typography/radii/grid/shadows) — see "Design Tokens" further down. Components port those tokens as **inline styles** (not the mockup's custom runtime, and not yet a token/theme system) to reproduce the design pixel-for-pixel.
+
+**Phase 2 (out of scope for this repo today)**: the collection crawlers that populate Supabase (disclosure-regulation + FnGuide clipping) are **future scope**, specified in `docs/superpowers/specs/2026-07-23-ir-clipping-board-design.md`. This repo currently only reads/serves already-seeded data; it does not scrape or ingest.
 
 ## Files
 
-- `README.md` — the authoritative, high-fidelity spec. Design tokens (colors, typography, radii, grid, shadows), component-by-component layout, interactions, and state shape all live here. **Read it fully before implementing.** It is written in Korean.
-- `IR Clipping Board.dc.html` — the adopted design ("1a Ledger"): list + tabs + search + pagination + detail modal. Open in a browser to see the intended rendering.
+- `README.md` — the authoritative, high-fidelity design spec (tokens, layout, interactions, state shape) **plus**, at the bottom, the run/deploy instructions for the implemented app. **Read the spec section fully before touching UI code.** It is written in Korean.
+- `IR Clipping Board.dc.html` — the adopted design ("1a Ledger"): list + tabs + search + pagination + detail modal. Open in a browser to see the intended rendering. This is design reference only — the real UI lives under `app/` and `components/`.
 
-`README.md` references two files that are **not present** in this bundle: `support.js` (the `.dc.html` runtime loaded via `<script src="./support.js">`) and `IR Clipping Concepts.dc.html` (rejected alternative concepts). Do not assume they exist.
+`README.md`'s design-spec section references two files that are **not present** in this bundle: `support.js` (the `.dc.html` runtime loaded via `<script src="./support.js">`) and `IR Clipping Concepts.dc.html` (rejected alternative concepts). Do not assume they exist.
 
 ## The `.dc.html` format
 
