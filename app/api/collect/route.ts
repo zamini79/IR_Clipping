@@ -30,6 +30,12 @@ const COLLECTORS = [
 
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50MB
 
+// Only ingest posts from the last N days. Bounds the first run (everything is
+// "new") to a small, recent window so attachment downloads finish within the
+// function timeout; steady-state runs stay small via dedup. Override with
+// COLLECT_SINCE_DAYS.
+const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
+
 // Backlog row shape returned by the un-notified query (Fix 1).
 interface BacklogRow {
   id: string;
@@ -125,8 +131,10 @@ export async function POST(req: Request) {
     }
   }
 
+  const cutoffIso = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const { newItems, errors: collectErrors } = await runCollectors({
     collectors: COLLECTORS,
+    minCollectedAt: cutoffIso,
     isExisting: async (key) => {
       const [board, ...rest] = key.split("::");
       const source_ref = rest.join("::");
