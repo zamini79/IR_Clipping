@@ -1,0 +1,4 @@
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#eceae3;font-family:"Pretendard",system-ui,sans-serif}
+a{color:inherit;text-decoration:none}
