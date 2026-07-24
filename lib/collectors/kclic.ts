@@ -44,8 +44,9 @@ export async function kclicLogin(): Promise<string | null> {
   }
 
   const first = await submit("login", "");
+  const errorCode = (first.match(/name="errorCode"[^>]*value="([^"]*)"/) ?? [])[1] ?? "";
   // Duplicate-session prompt -> force re-login (disconnect the other session).
-  if (/reLogin|중복|이미|다른 곳|중복접속|접속 중/i.test(first)) {
+  if (/reLogin|중복|이미|다른 곳|중복접속|접속 중/i.test(first) || errorCode) {
     await submit("reLogin", usrId);
   }
 
@@ -53,7 +54,11 @@ export async function kclicLogin(): Promise<string | null> {
   const check = await fetch(KCLIC_NOTICE, { headers: { "User-Agent": UA, Cookie: cookieHeader(jar) } });
   const html = await check.text();
   if (/id="upw"|name="pw"/.test(html)) {
-    throw new Error("KCLIC login failed (still gated; check KCLIC_USER/KCLIC_PASSWORD)");
+    // Diagnostic detail: helps distinguish bad creds vs IP/geo restriction
+    // (KCLIC works from a KR IP locally but the prod function runs in US/iad1).
+    throw new Error(
+      `KCLIC login failed (still gated). loginRespLen=${first.length} errorCode="${errorCode}" noticeLen=${html.length}`
+    );
   }
   return cookieHeader(jar);
 }
