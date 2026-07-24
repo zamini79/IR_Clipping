@@ -30,6 +30,9 @@ export function parseFscReg(html: string): CollectedItem[] {
     const $li = $(li);
     const a = $li.find("div.subject a").first();
     const href = a.attr("href") ?? "";
+    // Strip the "new post" badge span (e.g. ". 금일 등록된 게시글") that the site
+    // appends inside the title anchor, so it doesn't leak into the stored title.
+    a.find("span.newbbs-span").remove();
     const title = a.text().trim();
     if (!title || !href) return;
 

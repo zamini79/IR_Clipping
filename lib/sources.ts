@@ -21,7 +21,7 @@ export const CRAWL_SOURCES: CrawlSourceGroup[] = [
     label: "공시법규 규정",
     sources: [
       { org: "금융위원회", board: "보도자료", url: "https://www.fsc.go.kr/no010101" },
-      { org: "금융위원회", board: "입법예고 · 규정변경예고", url: "https://www.fsc.go.kr/po040200" },
+      { org: "금융위원회", board: "소관규정 · 고시 · 공고 · 훈령", url: "https://www.fsc.go.kr/po040200" },
       { org: "공정거래위원회", board: "보도자료", url: "https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12" },
       { org: "금융감독원(DART)", board: "보도자료", url: "https://dart.fss.or.kr/info/searchBodo.do" },
       { org: "금융감독원(DART)", board: "안내 · 해설", url: "https://dart.fss.or.kr/info/searchGuide.do" },
