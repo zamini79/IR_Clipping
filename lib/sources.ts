@@ -47,7 +47,7 @@ export const CRAWL_SOURCES: CrawlSourceGroup[] = [
     category: "fnguide",
     label: "FnGuide",
     sources: [
-      { org: "FnGuide", board: "리서치 리포트 검색", url: "https://www.fnguide.com/Research/SearchReport", note: "키워드 기반 검색 · 로그인 필요", keywords: FNGUIDE_KEYWORDS },
+      { org: "FnGuide", board: "리서치 리포트 검색", url: "https://www.fnguide.com/Research/SearchReport", keywords: FNGUIDE_KEYWORDS },
     ],
   },
 ];
