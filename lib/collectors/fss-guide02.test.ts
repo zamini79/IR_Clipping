@@ -23,8 +23,8 @@ describe("parseFssGuide02", () => {
   it("derives sourceRef from the selectGongsi2(seqno) JS argument", () => {
     expect(items[0].sourceRef).toBe("436");
   });
-  it("falls back sourceUrl to the board list URL (no navigable per-post URL exists)", () => {
-    expect(items[0].sourceUrl).toBe("https://dart.fss.or.kr/info/searchGuide02.do");
+  it("deep-links sourceUrl to selectGuide1.do?seqno=<seqno>", () => {
+    expect(items[0].sourceUrl).toBe("https://dart.fss.or.kr/info/selectGuide1.do?seqno=436");
   });
   it("derives collectedAt from the row's 작성일자 cell (KST), not the current time", () => {
     // fixture's first row date cell is 2025.12.23 (KST) -> 2025-12-22T15:00:00.000Z

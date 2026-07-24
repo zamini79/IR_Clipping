@@ -77,11 +77,9 @@ export function parseFssGuide(html: string): CollectedItem[] {
       title,
       department,
       collectedAt,
-      // No navigable per-post URL exists: the title link is a `#gongsi`
-      // fragment and the real detail route only accepts POST with a
-      // hidden-form `seqno`, same limitation as fss-bodo. See
-      // docs/superpowers/research/2026-07-23-dart-search-request.md.
-      sourceUrl: FSS_GUIDE_LIST,
+      // Deep-link to the post: selectGuide.do?seqno=<seqno> renders the detail
+      // via GET (the list's selectGongsi() posts the same seqno to this action).
+      sourceUrl: `${BASE}/info/selectGuide.do?seqno=${sourceRef}`,
       body: "",
       files,
     });

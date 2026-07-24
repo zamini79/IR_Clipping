@@ -23,8 +23,8 @@ describe("parseFssBodo", () => {
   it("derives sourceRef from the selectBodo(seqno) JS argument", () => {
     expect(items[0].sourceRef).toBe("28363");
   });
-  it("falls back sourceUrl to the board list URL (no navigable per-post URL exists)", () => {
-    expect(items[0].sourceUrl).toBe("https://dart.fss.or.kr/info/searchBodo.do");
+  it("deep-links sourceUrl to selectBodo.do?seqno=<seqno>", () => {
+    expect(items[0].sourceUrl).toBe("https://dart.fss.or.kr/info/selectBodo.do?seqno=28363");
   });
   it("derives collectedAt from the row's 작성일자 cell (KST), not the current time", () => {
     // fixture's first row date cell is 2026.07.21 (KST) -> 2026-07-20T15:00:00.000Z

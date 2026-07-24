@@ -77,11 +77,9 @@ export function parseFssBodo(html: string): CollectedItem[] {
       title,
       department,
       collectedAt,
-      // No navigable per-post URL exists: the title link is a `#bodoName`
-      // fragment and the real detail route (selectBodo.do) only accepts
-      // POST with a hidden-form `seqno`, rejecting GET (302 -> error1.htm).
-      // See docs/superpowers/research/2026-07-23-dart-search-request.md.
-      sourceUrl: FSS_BODO_LIST,
+      // Deep-link to the post: selectBodo.do?seqno=<seqno> renders the detail
+      // via GET (the list's selectBodo() posts the same seqno to this action).
+      sourceUrl: `${BASE}/info/selectBodo.do?seqno=${sourceRef}`,
       body: "",
       files,
     });

@@ -79,10 +79,9 @@ export function parseFssGuide02(html: string): CollectedItem[] {
       title,
       department,
       collectedAt,
-      // No navigable per-post URL exists: the title link is a JS handler and
-      // the real detail route only accepts POST with a hidden-form seqno, same
-      // limitation as fss-bodo/fss-guide.
-      sourceUrl: FSS_GUIDE02_LIST,
+      // Deep-link to the post: selectGuide1.do?seqno=<seqno> renders the detail
+      // via GET (the list's selectGongsi2() posts the same seqno to this action).
+      sourceUrl: `${BASE}/info/selectGuide1.do?seqno=${sourceRef}`,
       body: "",
       files,
     });
