@@ -14,8 +14,8 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
     <div onClick={onClose}
       style={{ position: "fixed", inset: 0, background: "rgba(20,26,45,.4)", backdropFilter: "blur(3px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, zIndex: 50 }}>
       <div onClick={(e) => e.stopPropagation()}
-        style={{ width: 640, maxWidth: "100%", background: "#fbfaf6", borderRadius: 12, boxShadow: "0 30px 70px -20px rgba(20,26,45,.5)", overflow: "hidden" }}>
-        <div style={{ padding: "26px 32px", borderBottom: "1px solid #e6e2d7" }}>
+        style={{ width: 640, maxWidth: "100%", maxHeight: "70vh", display: "flex", flexDirection: "column", background: "#fbfaf6", borderRadius: 12, boxShadow: "0 30px 70px -20px rgba(20,26,45,.5)", overflow: "hidden" }}>
+        <div style={{ padding: "26px 32px", borderBottom: "1px solid #e6e2d7", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, font: "600 11px 'Pretendard'", color: "#9a7b46" }}>
             {clipping.source}<span style={{ color: "#cfc9bd" }}>·</span>
             <span style={{ color: "#8a8f99", fontWeight: 500 }}>{activeLabel}</span>
@@ -32,6 +32,7 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
             </a>
           )}
         </div>
+        <div style={{ overflowY: "auto", flexGrow: 1, minHeight: 0 }}>
         <div style={{ padding: "26px 32px", font: "400 13.5px/1.8 'Pretendard'", color: "#3a4150", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{clipping.body}</div>
         <div style={{ padding: "0 32px 28px" }}>
           <div style={{ font: "600 10.5px 'Pretendard'", letterSpacing: ".06em", color: "#8a8f99", marginBottom: 10 }}>첨부파일</div>
@@ -54,6 +55,7 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
           {clipping.files.length === 0 && (
             <div style={{ font: "500 12.5px 'Pretendard'", color: "#a0a4ad" }}>첨부파일 없음</div>
           )}
+        </div>
         </div>
       </div>
     </div>
