@@ -1,0 +1,17 @@
+name: collect-fnguide
+on:
+  schedule:
+    - cron: "0 19 * * *" # daily 19:00 UTC = 04:00 KST (night; FnGuide login force-logs-out the user's session)
+  workflow_dispatch: {}
+jobs:
+  collect-fnguide:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger FnGuide collect endpoint
+        run: |
+          code=$(curl -s -o /tmp/out.json -w "%{http_code}" --max-time 290 -X POST \
+            "https://ir-clipping.vercel.app/api/collect-fnguide" -H "x-cron-secret: $CRON_SECRET")
+          echo "HTTP $code"; cat /tmp/out.json
+          test "$code" = "200"
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
