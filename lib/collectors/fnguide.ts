@@ -7,12 +7,11 @@ const PDF_DOWNLOAD = `${BASE}/Research/GetPdfFileForDownload`;
 const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
 
 // Keyword list to search FnGuide research for (not exhaustive collection).
-export const FNGUIDE_KEYWORDS = [
-  "SK바이오사이언스", "SKBioscience", "삼성바이오로직스", "GC녹십자", "한미약품", "유한양행",
-  "제약바이오 전망", "제약바이오 동향", "백신", "mRNA", "CGT", "PCV", "폐렴구균", "MSCI",
-  "JPMHC", "JPMHealthcare", "JPM헬스케어", "감염병", "독감", "대상포진", "수두", "인플루엔자",
-  "RSV", "IDT",
-];
+// Defined in the client-safe lib/sources.ts so the "수집 사이트 리스트" UI can
+// show it without importing this node-only module; re-exported here for the
+// collectors/tests that already import it from this file.
+export { FNGUIDE_KEYWORDS } from "../sources";
+import { FNGUIDE_KEYWORDS } from "../sources";
 
 // ---- cookie jar helpers -----------------------------------------------------
 type Jar = Map<string, string>;

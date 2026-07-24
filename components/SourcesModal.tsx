@@ -44,6 +44,16 @@ export function SourcesModal({ onClose }: { onClose: () => void }) {
                     </div>
                     <div style={{ marginTop: 4, font: "500 11px 'IBM Plex Mono'", color: "#9aa0ab", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.url}</div>
                     {s.note && <div style={{ marginTop: 3, font: "500 10.5px 'Pretendard'", color: "#b0928f" }}>{s.note}</div>}
+                    {s.keywords && s.keywords.length > 0 && (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ font: "600 9.5px 'Pretendard'", letterSpacing: ".05em", color: "#8a8f99", marginBottom: 6 }}>검색 키워드 {s.keywords.length}</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          {s.keywords.map((kw) => (
+                            <span key={kw} style={{ display: "inline-block", padding: "2px 7px", borderRadius: 4, background: "#f0ece0", font: "600 10px/1.4 'Pretendard'", color: "#8a6d3a" }}>{kw}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <span aria-hidden style={{ font: "600 12px 'Pretendard'", color: "#9a7b46", flexShrink: 0 }}>↗</span>
                 </a>

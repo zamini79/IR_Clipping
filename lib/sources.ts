@@ -2,11 +2,22 @@
 // "수집 사이트 리스트" panel on the board. Kept in sync with lib/collectors/*
 // (COLLECTORS in app/api/collect/route.ts + the FnGuide daily endpoint).
 
+// FnGuide 리서치는 전수 수집이 아니라 이 키워드들로 제목 검색해 수집한다.
+// (검색 로직은 lib/collectors/fnguide.ts가 이 목록을 import해서 사용.) client-safe
+// 하도록 여기(노드 의존성 없는 모듈)에 둔다 — 수집 사이트 리스트 UI가 함께 표시.
+export const FNGUIDE_KEYWORDS = [
+  "SK바이오사이언스", "SKBioscience", "삼성바이오로직스", "GC녹십자", "한미약품", "유한양행",
+  "제약바이오 전망", "제약바이오 동향", "백신", "mRNA", "CGT", "PCV", "폐렴구균", "MSCI",
+  "JPMHC", "JPMHealthcare", "JPM헬스케어", "감염병", "독감", "대상포진", "수두", "인플루엔자",
+  "RSV", "IDT",
+];
+
 export interface CrawlSource {
   org: string; // 기관/출처
   board: string; // 게시판/코너 이름
   url: string; // 사람이 볼 수 있는 원문 목록 페이지
   note?: string; // 수집 방식 등 부가 설명
+  keywords?: string[]; // 키워드 기반 수집원(FnGuide)의 검색 키워드 목록
 }
 
 export interface CrawlSourceGroup {
@@ -36,7 +47,7 @@ export const CRAWL_SOURCES: CrawlSourceGroup[] = [
     category: "fnguide",
     label: "FnGuide",
     sources: [
-      { org: "FnGuide", board: "리서치 리포트 검색", url: "https://www.fnguide.com/Research/SearchReport", note: "키워드 기반 검색 · 로그인 필요" },
+      { org: "FnGuide", board: "리서치 리포트 검색", url: "https://www.fnguide.com/Research/SearchReport", note: "키워드 기반 검색 · 로그인 필요", keywords: FNGUIDE_KEYWORDS },
     ],
   },
 ];
