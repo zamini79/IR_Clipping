@@ -143,7 +143,9 @@ async function searchKeyword(cookie: string, keyword: string, minDt: string, max
   });
   if (!res.ok) throw new Error(`GetReports(${keyword}) ${res.status}`);
   const json = JSON.parse(await res.text());
-  return parseReports(json.dataSet);
+  // Results are nested at dataSet.reports (dataSet itself is an object with
+  // reports/searchEngineResult/searchInfo).
+  return parseReports(json?.dataSet?.reports ?? json?.dataSet);
 }
 
 // Fetches the per-report documentData token needed to download its PDF.
@@ -192,14 +194,18 @@ export const fnguideCollector: Collector = {
     if (!cookie) return []; // credentials absent -> silent skip
     const maxDt = kstDot(new Date());
     const minDt = kstDot(new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000));
+    // The server date filter isn't reliably applied, so enforce the window
+    // client-side by report date.
+    const cutoffIso = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-    // Search every keyword, dedup reports by RPT_ID (a report can match many).
+    // Search every keyword, dedup reports by RPT_ID (a report can match many),
+    // keeping only reports within the collection window.
     const byId = new Map<string, FnReport>();
     const errors: string[] = [];
     for (const kw of FNGUIDE_KEYWORDS) {
       try {
         for (const rep of await searchKeyword(cookie, kw, minDt, maxDt)) {
-          if (!byId.has(rep.rptId)) byId.set(rep.rptId, rep);
+          if (rep.anlDt >= cutoffIso && !byId.has(rep.rptId)) byId.set(rep.rptId, rep);
         }
       } catch (e) {
         errors.push(`${kw}: ${e instanceof Error ? e.message : String(e)}`);
