@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { parseFscReg } from "./fsc-reg";
+import { parseFscReg, parseFscRegDetailBody } from "./fsc-reg";
 
 const html = readFileSync(new URL("./__fixtures__/fsc-reg.html", import.meta.url), "utf8");
+const detailHtml = readFileSync(new URL("./__fixtures__/fsc-reg-detail.html", import.meta.url), "utf8");
 
 describe("parseFscReg", () => {
   const items = parseFscReg(html);
@@ -37,5 +38,19 @@ describe("parseFscReg", () => {
     expect(withFiles).toBeDefined();
     expect(withFiles!.files[0].name.length).toBeGreaterThan(0);
     expect(withFiles!.files[0].externalUrl).toMatch(/^https?:\/\//);
+  });
+});
+
+describe("parseFscRegDetailBody", () => {
+  it("extracts the detail-page body (div.board-view-wrap div.cont) as HTML", () => {
+    const body = parseFscRegDetailBody(detailHtml);
+    expect(body.length).toBeGreaterThan(0);
+    expect(body).toContain("금융위원회 공고 제2026-551호");
+    expect(body).toContain("여신전문금융업 등록사실을 공고합니다");
+    // Inner HTML is preserved so read-time htmlToText renders the <br> breaks.
+    expect(body).toMatch(/<br\s*\/?>/i);
+  });
+  it("returns '' when no content container exists", () => {
+    expect(parseFscRegDetailBody("<html><body><p>nope</p></body></html>")).toBe("");
   });
 });

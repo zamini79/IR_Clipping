@@ -8,6 +8,7 @@ export const FSC_REG_LIST = `${BASE}/po040200?curPage=1`;
 // required to get the server-rendered list page.
 const BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
+const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
 
 /**
  * Converts the row's `YYYY-MM-DD` day text (observed KST, no time-of-day)
@@ -75,12 +76,41 @@ export function parseFscReg(html: string): CollectedItem[] {
   return items;
 }
 
+// Extracts the post body from an FSC detail page. The board-view template holds
+// the content in `div.board-view-wrap div.cont`; the inner HTML is returned so
+// the read-time htmlToText() renders its <br>/<p> line breaks. Returns "" when
+// the container is absent.
+export function parseFscRegDetailBody(html: string): string {
+  const $ = cheerio.load(html);
+  const cont = $("div.board-view-wrap div.cont").first();
+  const el = cont.length ? cont : $("div.cont").first();
+  return (el.html() ?? "").trim();
+}
+
+// The list page carries no body text, so enrich recent items (within the
+// collect window) by fetching their (public) detail page and extracting the
+// content. Per-item failures are swallowed so one bad page never aborts the run.
+export async function enrichFscRegBodies(items: CollectedItem[]): Promise<CollectedItem[]> {
+  const cutoff = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  for (const it of items) {
+    if (it.collectedAt < cutoff || !it.sourceUrl) continue;
+    try {
+      const res = await fetch(it.sourceUrl, { headers: { "User-Agent": BROWSER_UA } });
+      if (!res.ok) continue;
+      it.body = parseFscRegDetailBody(await res.text());
+    } catch {
+      // keep body: "" on failure
+    }
+  }
+  return items;
+}
+
 export const fscRegCollector: Collector = {
   board: "fsc-reg",
   source: "금융위원회",
   async collect() {
     const res = await fetch(FSC_REG_LIST, { headers: { "User-Agent": BROWSER_UA } });
     if (!res.ok) throw new Error(`FSC-REG ${res.status}`);
-    return parseFscReg(await res.text());
+    return enrichFscRegBodies(parseFscReg(await res.text()));
   },
 };
