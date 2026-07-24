@@ -123,7 +123,11 @@ export function parseReports(dataSet: unknown): FnReport[] {
     .filter((r): r is FnReport => r !== null);
 }
 
-async function searchKeyword(cookie: string, keyword: string, minDt: string, maxDt: string): Promise<FnReport[]> {
+export const FN_PDF_DOWNLOAD = PDF_DOWNLOAD;
+export const FN_UA = UA;
+export const fnguideReferer = (rptId: string) => `${BASE}/Research/PdfViewer?rptId=${rptId}`;
+
+export async function searchKeyword(cookie: string, keyword: string, minDt: string, maxDt: string): Promise<FnReport[]> {
   const fd = new FormData();
   fd.append("srchKeyword", keyword);
   fd.append("srchTypeCode", "");
@@ -148,8 +152,25 @@ async function searchKeyword(cookie: string, keyword: string, minDt: string, max
   return parseReports(json?.dataSet?.reports ?? json?.dataSet);
 }
 
+// Searches every keyword and returns in-window reports deduped by RPT_ID.
+// Metadata only (no per-report PDF token fetch) — cheap enough to run in a
+// serverless invocation. `sinceDays` bounds the window (client-side date filter,
+// since the server minDt filter isn't reliable).
+export async function searchAllKeywords(cookie: string, sinceDays = SINCE_DAYS): Promise<FnReport[]> {
+  const maxDt = kstDot(new Date());
+  const minDt = kstDot(new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000));
+  const cutoffIso = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000).toISOString();
+  const byId = new Map<string, FnReport>();
+  for (const kw of FNGUIDE_KEYWORDS) {
+    for (const rep of await searchKeyword(cookie, kw, minDt, maxDt)) {
+      if (rep.anlDt >= cutoffIso && !byId.has(rep.rptId)) byId.set(rep.rptId, rep);
+    }
+  }
+  return [...byId.values()];
+}
+
 // Fetches the per-report documentData token needed to download its PDF.
-async function fetchDocumentData(cookie: string, rptId: string): Promise<string> {
+export async function fetchDocumentData(cookie: string, rptId: string): Promise<string> {
   const res = await fetch(`${BASE}/Research/PdfViewer?rptId=${rptId}`, { headers: { "User-Agent": UA, Cookie: cookie } });
   const html = await res.text();
   return decodeEntities((html.match(/id="documentData"[^>]*value="([^"]*)"/) ?? [])[1] ?? "");

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
-import { runCollectors } from "@/lib/collect-run";
-import { itemToRow, dedupKey } from "@/lib/collectors/normalize";
-import { uploadAttachment } from "@/lib/collectors/attachments";
-import { fnguideCollector } from "@/lib/collectors/fnguide";
+import { itemToRow } from "@/lib/collectors/normalize";
+import { storagePathFor, humanSize } from "@/lib/collectors/attachments";
+import {
+  fnguideLogin, searchAllKeywords, fetchDocumentData, FN_PDF_DOWNLOAD, FN_UA, fnguideReferer,
+} from "@/lib/collectors/fnguide";
 import type { CollectedItem } from "@/lib/collectors/types";
 
 export const runtime = "nodejs";
@@ -11,13 +12,13 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
-const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
 
-// FnGuide (keyword-based, category=fnguide) runs on its own low-frequency
-// schedule — separate from the hourly /api/collect — because it logs in (which
-// force-disconnects the user's single FnGuide session) and does many keyword
-// searches + PDF downloads that would slow/timeout the shared hourly run.
-// Newly-inserted items are emailed by the hourly run's un-notified backlog digest.
+// FnGuide (keyword-based, category=fnguide) on its own daily schedule, separate
+// from the hourly pipeline (FnGuide login force-disconnects the user's single
+// session; searches + PDF downloads are heavy). Only NEW reports incur the
+// expensive per-report documentData + PDF download — existing ones are skipped
+// before any viewer/PDF fetch, keeping the run within the function timeout.
+// New items are emailed by the hourly run's un-notified backlog digest.
 export async function POST(req: Request) {
   if (req.headers.get("x-cron-secret") !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -28,71 +29,73 @@ export async function POST(req: Request) {
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
   }
-  const errors: string[] = [];
 
-  async function insertItem(it: CollectedItem) {
-    const { data, error } = await supabase.from("clippings").insert(itemToRow(it)).select("id").single();
-    if (error) {
-      if (error.code === "23505" || /duplicate key/i.test(error.message)) return;
-      throw new Error(`insert ${dedupKey(it)}: ${error.message}`);
-    }
-    const clippingId = data!.id as string;
-    let fileIdx = 0;
-    for (const f of it.files) {
-      const uploaded = await uploadAttachment(
-        {
-          fetchBytes: async (url, headers, postForm) => {
-            let res: Response;
-            if (postForm) {
-              const fd = new FormData();
-              for (const [k, v] of Object.entries(postForm)) fd.append(k, v);
-              res = await fetch(url, { method: "POST", headers, body: fd });
-            } else {
-              res = await fetch(url, headers ? { headers } : undefined);
-            }
-            if (!res.ok) throw new Error(`fetch ${url}: HTTP ${res.status}`);
-            const buf = new Uint8Array(await res.arrayBuffer());
-            if (buf.byteLength > MAX_ATTACHMENT_BYTES) throw new Error(`body ${buf.byteLength} exceeds cap`);
-            return buf;
-          },
-          upload: async (path, bytes) => {
-            const { error: upErr } = await supabase.storage
-              .from("clipping-files")
-              .upload(path, bytes, { upsert: true, contentType: "application/pdf" });
-            if (upErr) throw upErr;
-          },
-        },
-        it.board, it.sourceRef, { ...f, name: `${fileIdx}-${f.name}` }
-      );
-      fileIdx++;
-      const { error: fileErr } = await supabase.from("clipping_files").insert({
-        clipping_id: clippingId,
-        name: f.name,
-        size: uploaded?.size ?? "",
-        storage_path: uploaded?.storagePath ?? "",
-        external_url: it.sourceUrl, // FnGuide PDF is behind login; link to the report viewer
-      });
-      if (fileErr) errors.push(`clipping_files [${it.sourceRef}] ${f.name}: ${fileErr.message}`);
+  const errors: string[] = [];
+  let cookie: string | null;
+  try {
+    cookie = await fnguideLogin();
+  } catch (e) {
+    return NextResponse.json({ error: `login: ${e instanceof Error ? e.message : String(e)}` }, { status: 500 });
+  }
+  if (!cookie) return NextResponse.json({ error: "FnGuide credentials not configured" }, { status: 500 });
+
+  let reports;
+  try {
+    reports = await searchAllKeywords(cookie);
+  } catch (e) {
+    return NextResponse.json({ error: `search: ${e instanceof Error ? e.message : String(e)}` }, { status: 500 });
+  }
+
+  let inserted = 0;
+  for (const rep of reports) {
+    const { count } = await supabase
+      .from("clippings")
+      .select("id", { count: "exact", head: true })
+      .eq("board", "fnguide")
+      .eq("source_ref", rep.rptId);
+    if ((count ?? 0) > 0) continue; // already have it — skip the expensive PDF work
+
+    const item: CollectedItem = {
+      board: "fnguide", category: "fnguide", source: rep.brokerage || "FnGuide",
+      sourceRef: rep.rptId, title: rep.title, department: rep.analysts,
+      collectedAt: rep.anlDt, sourceUrl: fnguideReferer(rep.rptId), body: "", files: [],
+    };
+    try {
+      const { data, error } = await supabase.from("clippings").insert(itemToRow(item)).select("id").single();
+      if (error) {
+        if (error.code === "23505" || /duplicate key/i.test(error.message)) continue;
+        throw new Error(error.message);
+      }
+      inserted++;
+      // Download the PDF (new report only).
+      try {
+        const documentData = await fetchDocumentData(cookie, rep.rptId);
+        if (documentData) {
+          const fd = new FormData();
+          fd.append("documentData", documentData);
+          const res = await fetch(FN_PDF_DOWNLOAD, {
+            method: "POST",
+            headers: { "User-Agent": FN_UA, Cookie: cookie, Referer: fnguideReferer(rep.rptId) },
+            body: fd,
+          });
+          if (!res.ok) throw new Error(`pdf HTTP ${res.status}`);
+          const bytes = new Uint8Array(await res.arrayBuffer());
+          if (bytes.byteLength > MAX_ATTACHMENT_BYTES) throw new Error(`pdf ${bytes.byteLength} exceeds cap`);
+          const path = storagePathFor("fnguide", rep.rptId, `0-${rep.title}.pdf`);
+          const { error: upErr } = await supabase.storage.from("clipping-files").upload(path, bytes, { upsert: true, contentType: "application/pdf" });
+          if (upErr) throw upErr;
+          await supabase.from("clipping_files").insert({
+            clipping_id: data!.id, name: `${rep.title}.pdf`,
+            size: humanSize(bytes.byteLength), storage_path: path, external_url: fnguideReferer(rep.rptId),
+          });
+        }
+      } catch (e) {
+        errors.push(`pdf ${rep.rptId}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    } catch (e) {
+      errors.push(`insert ${rep.rptId}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
-  const cutoffIso = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const { newItems, errors: collectErrors } = await runCollectors({
-    collectors: [fnguideCollector],
-    minCollectedAt: cutoffIso,
-    isExisting: async (key) => {
-      const [board, ...rest] = key.split("::");
-      const source_ref = rest.join("::");
-      const { count } = await supabase
-        .from("clippings")
-        .select("id", { count: "exact", head: true })
-        .eq("board", board)
-        .eq("source_ref", source_ref);
-      return (count ?? 0) > 0;
-    },
-    insertItem,
-  });
-  errors.push(...collectErrors);
-
-  return NextResponse.json({ new: newItems.length, errors }, { status: errors.length > 0 ? 500 : 200 });
+  return NextResponse.json({ new: inserted, checked: reports.length, errors }, { status: errors.length > 0 ? 500 : 200 });
 }
