@@ -1,0 +1,33 @@
+<!-- Minimal fixture for parseFtcDetail, mirroring an FTC 보도자료 detail page.
+     Body lives in td.p-table__content; attachments are li.p-attach__item with a
+     download link (a.p-attach__link -> downloadBbsFile.do) and a viewer link
+     (a.ico-view -> previewBbsAtchmnfl) that must be ignored. A document-viewer
+     iframe is also present and must be ignored. Public content, no PII. -->
+<html>
+<body>
+  <table class="p-table">
+    <tr>
+      <td colspan="4" title="내용" class="p-table__content"><p>건설업계 상생협력 문화 확산을 위해<br> 30개 중견 건설사 상생협약 체결</p><p>공정거래위원회는 7월 24일 협약식을 개최하였다.</p></td>
+    </tr>
+    <tr>
+      <td colspan="3">
+        <ul class="p-attach">
+          <li class="p-attach__item">
+            <a href="./downloadBbsFile.do?atchmnflNo=54279" class="p-attach__link">260724(참고) 중견 건설업계 대상 상생협약 체결_수정.hwp &nbsp; <span class="p-attach__size">(hwp, 253.0KB)</span></a>
+            <a href="./previewBbsAtchmnfl.do?key=12&amp;fileNo=54279" class="btn btn-txt ico-view" target="_blank"><span class="skip">문서뷰어</span></a>
+          </li>
+          <li class="p-attach__item">
+            <a href="./downloadBbsFile.do?atchmnflNo=54280" class="p-attach__link">260724(참고) 중견 건설업계 대상 상생협약 체결_수정.hwpx &nbsp; <span class="p-attach__size">(hwpx, 291.4KB)</span></a>
+            <a href="./previewBbsAtchmnfl.do?key=12&amp;fileNo=54280" class="btn btn-txt ico-view" target="_blank"><span class="skip">문서뷰어</span></a>
+          </li>
+          <li class="p-attach__item">
+            <a href="./downloadBbsFile.do?atchmnflNo=54281" class="p-attach__link">260724(참고) 중견 건설업계 대상 상생협약 체결_수정.pdf &nbsp; <span class="p-attach__size">(pdf, 512.0KB)</span></a>
+            <a href="./previewBbsAtchmnfl.do?key=12&amp;fileNo=54281" class="btn btn-txt ico-view" target="_blank"><span class="skip">문서뷰어</span></a>
+          </li>
+        </ul>
+        <iframe name="viewFrame" class="viewFrame" src="./previewBbsAtchmnfl.do?key=12&amp;fileNo=54281"></iframe>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
