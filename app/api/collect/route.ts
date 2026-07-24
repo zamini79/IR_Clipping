@@ -10,6 +10,7 @@ import { fscRegCollector } from "@/lib/collectors/fsc-reg";
 import { ftcBodoCollector } from "@/lib/collectors/ftc-bodo";
 import { klcaDocCollector } from "@/lib/collectors/klca-doc";
 import { klcaLawCollector } from "@/lib/collectors/klca-law";
+import { klcaNewsCollector } from "@/lib/collectors/klca-news";
 import { fssBodoCollector } from "@/lib/collectors/fss-bodo";
 import { fssGuideCollector } from "@/lib/collectors/fss-guide";
 import { kclicCollector } from "@/lib/collectors/kclic";
@@ -25,6 +26,7 @@ const COLLECTORS = [
   ftcBodoCollector,
   klcaDocCollector,
   klcaLawCollector,
+  klcaNewsCollector,
   fssBodoCollector,
   fssGuideCollector,
   kclicCollector,
