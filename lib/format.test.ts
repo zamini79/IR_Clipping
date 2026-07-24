@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatDate, padNo, attachmentLabel, htmlToText } from "./format";
+import { formatDate, formatDateTimeKst, padNo, attachmentLabel, htmlToText } from "./format";
 
 describe("formatDate", () => {
   it("converts ISO date to YYYY.MM.DD", () => {
@@ -7,6 +7,19 @@ describe("formatDate", () => {
   });
   it("zero-pads month and day", () => {
     expect(formatDate("2026-01-05T00:00:00.000Z")).toBe("2026.01.05");
+  });
+});
+
+describe("formatDateTimeKst", () => {
+  it("formats a UTC timestamp as YYYY.MM.DD HH:mm in KST (UTC+9)", () => {
+    expect(formatDateTimeKst("2026-07-24T12:43:48.000Z")).toBe("2026.07.24 21:43");
+  });
+  it("rolls the date forward across the KST midnight boundary", () => {
+    expect(formatDateTimeKst("2026-07-24T15:30:00.000Z")).toBe("2026.07.25 00:30");
+  });
+  it("returns '' for empty or invalid input", () => {
+    expect(formatDateTimeKst("")).toBe("");
+    expect(formatDateTimeKst("not-a-date")).toBe("");
   });
 });
 

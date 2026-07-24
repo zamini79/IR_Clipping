@@ -6,6 +6,19 @@ export function formatDate(iso: string): string {
   return `${y}.${m}.${day}`;
 }
 
+// Formats an ISO timestamp as "YYYY.MM.DD HH:mm" in KST (Asia/Seoul). Used for
+// the header's "최근 수집" time. Returns "" for empty/invalid input.
+export function formatDateTimeKst(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const p = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(d).reduce<Record<string, string>>((a, x) => ((a[x.type] = x.value), a), {});
+  return `${p.year}.${p.month}.${p.day} ${p.hour}:${p.minute}`;
+}
+
 export function padNo(n: number): string {
   return String(n).padStart(2, "0");
 }
