@@ -11,10 +11,16 @@ export function humanSize(n: number): string {
   return `${n}B`;
 }
 
+// Supabase Storage object keys must be ASCII-safe; Korean/parenthesis/space
+// characters are rejected with "Invalid key". Replace any run of unsafe chars
+// with a single underscore. The human-readable filename is preserved separately
+// in clipping_files.name; this only affects the storage key.
+function safeSegment(s: string): string {
+  return s.trim().replace(/[^A-Za-z0-9._-]+/g, "_") || "file";
+}
+
 export function storagePathFor(board: string, sourceRef: string, name: string): string {
-  const safe = name.trim().replace(/\s+/g, "_").replace(/[\/\\]/g, "_");
-  const ref = sourceRef.replace(/[^A-Za-z0-9._-]/g, "_");
-  return `${board}/${ref}/${safe}`;
+  return `${safeSegment(board)}/${safeSegment(sourceRef)}/${safeSegment(name)}`;
 }
 
 export async function uploadAttachment(

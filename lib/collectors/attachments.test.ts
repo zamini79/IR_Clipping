@@ -2,9 +2,16 @@ import { describe, it, expect, vi } from "vitest";
 import { storagePathFor, uploadAttachment } from "./attachments";
 
 describe("storagePathFor", () => {
-  it("builds board/sourceRef/filename path, sanitizing", () => {
+  it("keeps ASCII names, replacing spaces with underscore", () => {
+    expect(storagePathFor("fss-bodo", "1182", "report v2.pdf"))
+      .toBe("fss-bodo/1182/report_v2.pdf");
+  });
+  it("collapses unsafe (Korean/parenthesis) runs to a single underscore for a valid Storage key", () => {
+    // Korean + space + parens are all rejected by Supabase Storage keys.
     expect(storagePathFor("fss-bodo", "1182", "사업보고서 개정.pdf"))
-      .toBe("fss-bodo/1182/사업보고서_개정.pdf");
+      .toBe("fss-bodo/1182/_.pdf");
+    expect(storagePathFor("fsc-reg", "87392", "공고(인가).hwpx"))
+      .toBe("fsc-reg/87392/_.hwpx");
   });
 });
 

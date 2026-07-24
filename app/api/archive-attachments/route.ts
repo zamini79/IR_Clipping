@@ -67,7 +67,11 @@ export async function POST(req: Request) {
       const bytes = new Uint8Array(await res.arrayBuffer());
       if (bytes.byteLength > MAX_ATTACHMENT_BYTES) throw new Error(`body ${bytes.byteLength} exceeds cap`);
 
-      const path = storagePathFor(parent.board, parent.source_ref, row.name);
+      // Use the file's uuid (+ original extension) as the key so Korean/parens
+      // filenames can't collide after ASCII-sanitization. The display filename
+      // stays in clipping_files.name.
+      const ext = row.name.match(/\.[A-Za-z0-9]+$/)?.[0] ?? "";
+      const path = storagePathFor(parent.board, parent.source_ref, `${row.id}${ext}`);
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, bytes, { upsert: true });
       if (upErr) throw new Error(`upload: ${upErr.message}`);
 
