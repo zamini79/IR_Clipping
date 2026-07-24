@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { parseFscBodo } from "./fsc-bodo";
+import { parseFscBodo, parseFscDetailFiles } from "./fsc-bodo";
 
 const xml = readFileSync(new URL("./__fixtures__/fsc-bodo.xml", import.meta.url), "utf8");
+const detailHtml = readFileSync(new URL("./__fixtures__/fsc-detail.html", import.meta.url), "utf8");
 
 describe("parseFscBodo", () => {
   const items = parseFscBodo(xml);
@@ -27,5 +28,23 @@ describe("parseFscBodo", () => {
     expect(items[0].collectedAt).toBe("2026-07-22T15:00:00.000Z");
     expect(items[0].sourceRef).toBe("87397");
     expect(items[0].sourceUrl).toBe("https://www.fsc.go.kr/no010101/87397");
+  });
+});
+
+describe("parseFscDetailFiles", () => {
+  const files = parseFscDetailFiles(detailHtml);
+  it("extracts every attachment from the detail 첨부파일 목록", () => {
+    expect(files.length).toBe(2); // 1 hwp + 1 pdf
+  });
+  it("keeps the real filename and an absolute getFile URL", () => {
+    expect(files[0].name).toContain("단일종목 레버리지");
+    expect(files[0].name.endsWith(".hwp")).toBe(true);
+    expect(files[0].externalUrl).toBe(
+      "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87403&fileTy=ATTACH&fileNo=1"
+    );
+    expect(files[1].name.endsWith(".pdf")).toBe(true);
+  });
+  it("returns [] when there is no attachment section", () => {
+    expect(parseFscDetailFiles("<html><body>none</body></html>")).toEqual([]);
   });
 });
