@@ -36,6 +36,8 @@ export function htmlToText(html: string): string {
     return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : "";
   });
   s = s.replace(/&[a-zA-Z][a-zA-Z0-9]*;/g, (m) => NAMED_ENTITIES[m] ?? m);
+  // Some sources (e.g. FTC) emit &nbsp without the trailing semicolon; treat as space.
+  s = s.replace(/&nbsp;?/gi, " ");
   s = s.replace(/[ \t\f\v\r]+/g, " ");
   s = s.replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n");
   return s.trim();

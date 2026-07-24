@@ -41,6 +41,9 @@ describe("htmlToText", () => {
   it("decodes named and numeric entities", () => {
     expect(htmlToText("a&middot;b &amp; c &#8226; d")).toBe("a·b & c • d");
   });
+  it("treats &nbsp with or without a trailing semicolon as a space", () => {
+    expect(htmlToText("가&nbsp;나&nbsp다")).toBe("가 나 다");
+  });
   it("turns <br> and block-close tags into newlines", () => {
     expect(htmlToText("줄1<br>줄2</p><p>줄3")).toBe("줄1\n줄2\n줄3");
   });
