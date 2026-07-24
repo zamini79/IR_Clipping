@@ -12,6 +12,7 @@ import { klcaDocCollector } from "@/lib/collectors/klca-doc";
 import { klcaLawCollector } from "@/lib/collectors/klca-law";
 import { fssBodoCollector } from "@/lib/collectors/fss-bodo";
 import { fssGuideCollector } from "@/lib/collectors/fss-guide";
+import { kclicCollector } from "@/lib/collectors/kclic";
 import type { CollectedItem } from "@/lib/collectors/types";
 
 export const runtime = "nodejs";
@@ -26,6 +27,7 @@ const COLLECTORS = [
   klcaLawCollector,
   fssBodoCollector,
   fssGuideCollector,
+  kclicCollector,
 ];
 
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50MB

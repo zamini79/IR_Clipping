@@ -1,0 +1,28 @@
+<!-- Minimal fixture for parseKclicNotices, mirroring the KCLIC notice list
+     table (authenticated). Columns: 번호/제목/담당기관/등록일/첨부. Detail id is in
+     fn_detail('<contId>'), attachments in fn_fileDownload('<contId>','<seq>','<name>').
+     Hand-crafted, no member/PII content. -->
+<html><body>
+<table class="board_list">
+  <thead><tr class="head"><th>번호</th><th>제목</th><th>담당기관</th><th>등록일</th><th>첨부파일</th></tr></thead>
+  <tbody>
+    <tr class="overbg" id="realTr0">
+      <td onclick="fn_detail('11808', '0');">101</td>
+      <td onclick="fn_detail('11808', '0');" class="tl">유가증권시장 공시규정 일부개정 안내</td>
+      <td onclick="fn_detail('11808', '0');">한국거래소</td>
+      <td onclick="fn_detail('11808', '0');">2026-07-02</td>
+      <td>
+        <a href="javascript:fn_fileDownload('11808','1','[공문] 유가증권시장 공시규정 일부개정 통보.pdf');"><img src="../img/ic_pdf.png" alt="pdf"/></a>
+        <a href="javascript:fn_fileDownload('11808','2','신구조문대비표.hwp');"><img src="../img/ic_hwp.png" alt="hwp"/></a>
+      </td>
+    </tr>
+    <tr class="overbg" id="realTr1">
+      <td onclick="fn_detail('11805', '1');">100</td>
+      <td onclick="fn_detail('11805', '1');" class="tl">코스닥시장 공시업무 안내</td>
+      <td onclick="fn_detail('11805', '1');">한국거래소</td>
+      <td onclick="fn_detail('11805', '1');">2026-07-01</td>
+      <td><a href="javascript:fn_fileDownload('11805','1','코스닥 공시업무 안내.pdf');"><img src="../img/ic_pdf.png" alt="pdf"/></a></td>
+    </tr>
+  </tbody>
+</table>
+</body></html>
