@@ -5,7 +5,7 @@ export interface AttachmentDeps {
   upload: (path: string, bytes: Uint8Array) => Promise<void>;
 }
 
-function humanSize(n: number): string {
+export function humanSize(n: number): string {
   if (n >= 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)}MB`;
   if (n >= 1024) return `${Math.round(n / 1024)}KB`;
   return `${n}B`;
