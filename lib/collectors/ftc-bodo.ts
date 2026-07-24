@@ -72,7 +72,13 @@ export function parseFtcBodo(html: string): CollectedItem[] {
 // (a.ico-view / previewBbsAtchmnfl / iframe.viewFrame) and the download-all zip.
 export function parseFtcDetail(html: string): { body: string; files: CollectedFile[] } {
   const $ = cheerio.load(html);
-  const body = ($("td.p-table__content").first().html() ?? "").trim();
+  // The content cell lives inside malformed table markup that cheerio discards
+  // during table normalization, so extract its inner HTML by regex instead.
+  // (Attachments live in a <ul>, which cheerio parses fine.)
+  const bodyMatch = html.match(
+    /<td[^>]*class="[^"]*p-table__content[^"]*"[^>]*>([\s\S]*?)<\/td>/i
+  );
+  const body = bodyMatch ? bodyMatch[1].trim() : "";
   const files = $("li.p-attach__item a.p-attach__link")
     .toArray()
     .map((el) => {
