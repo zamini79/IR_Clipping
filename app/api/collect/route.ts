@@ -94,11 +94,12 @@ export async function POST(req: Request) {
       throw new Error(`insert ${dedupKey(it)}: ${error.message}`);
     }
     const clippingId = data!.id as string;
+    let fileIdx = 0;
     for (const f of it.files) {
       const uploaded = await uploadAttachment(
         {
-          fetchBytes: async (url) => {
-            const res = await fetch(url);
+          fetchBytes: async (url, headers) => {
+            const res = await fetch(url, headers ? { headers } : undefined);
             if (!res.ok) throw new Error(`fetch ${url}: HTTP ${res.status}`);
             const len = res.headers.get("content-length");
             if (len && Number(len) > MAX_ATTACHMENT_BYTES) {
@@ -115,8 +116,12 @@ export async function POST(req: Request) {
             if (upErr) throw upErr;
           },
         },
-        it.board, it.sourceRef, f
+        // Index-prefix the storage-key name so multiple attachments whose
+        // Korean/parenthesis filenames sanitize to the same key don't overwrite
+        // each other. Display name (below) stays the original f.name.
+        it.board, it.sourceRef, { ...f, name: `${fileIdx}-${f.name}` }
       );
+      fileIdx++;
       // Fix 3: check the clipping_files insert error; log and continue.
       const { error: fileErr } = await supabase.from("clipping_files").insert({
         clipping_id: clippingId,

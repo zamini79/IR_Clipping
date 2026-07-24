@@ -1,0 +1,18 @@
+<!-- Minimal, PII-free fixture for parseKlcaAttachments. Mirrors the KLCA detail
+     page's 첨부파일 section (rNo=2613): each attachment is an anchor calling
+     BinDownload('<token>') with the display filename as its text. Personal
+     member info from the live logged-in page has been intentionally removed;
+     tokens are placeholders. Stored as UTF-8 (the test reads it as UTF-8). -->
+<html>
+<body>
+  <div class="board_view">
+    <strong class="br_tit">첨부파일</strong>
+    <div class="file_list">
+      <span><img src="../../img/icon/Iconpdf.gif"> <a href="javascript:BinDownload('TOKEN_PDF_0');">(발송공문) 「기업공시서식 작성기준」 개정 안내(2026. 7. 23. 시행).pdf</a></span>
+      <span><img src="../../img/icon/Iconhwp.gif"> <a href="javascript:BinDownload('TOKEN_HWP_1');">(붙임1) 기업공시서식 작성기준 개정(요약)(11).hwp</a></span>
+      <span><img src="../../img/icon/Iconhwp.gif"> <a href="javascript:BinDownload('TOKEN_HWP_2');">(붙임2) 기업공시서식 작성기준 개정(본문)(9).hwp</a></span>
+      <span><img src="../../img/icon/Iconhwpx.gif"> <a href="javascript:BinDownload('TOKEN_HWPX_3');">(붙임3) 기업공시서식 작성기준 개정내용(신구조문대비표)(2).hwpx</a></span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import iconv from "iconv-lite";
 import type { Collector, CollectedItem } from "./types";
+import { enrichKlcaAttachments } from "./klca-auth";
 
 const BASE = "https://www.klca.or.kr/sub/law/";
 export const KLCA_LAW_LIST = `${BASE}legal_information.asp`;
@@ -64,6 +65,6 @@ export const klcaLawCollector: Collector = {
     // The site serves EUC-KR; decoding as UTF-8 would corrupt the Korean text.
     const buf = Buffer.from(await res.arrayBuffer());
     const html = iconv.decode(buf, "euc-kr");
-    return parseKlcaLaw(html);
+    return enrichKlcaAttachments(parseKlcaLaw(html));
   },
 };

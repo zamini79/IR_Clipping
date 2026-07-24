@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import iconv from "iconv-lite";
 import type { Collector, CollectedItem } from "./types";
+import { enrichKlcaAttachments } from "./klca-auth";
 
 const BASE = "https://www.klca.or.kr/sub/comm/";
 export const KLCA_DOC_LIST = `${BASE}official_document.asp`;
@@ -64,6 +65,6 @@ export const klcaDocCollector: Collector = {
     // The site serves EUC-KR; decoding as UTF-8 would corrupt the Korean text.
     const buf = Buffer.from(await res.arrayBuffer());
     const html = iconv.decode(buf, "euc-kr");
-    return parseKlcaDoc(html);
+    return enrichKlcaAttachments(parseKlcaDoc(html));
   },
 };
