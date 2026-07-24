@@ -104,6 +104,7 @@ export interface FnReport {
   brokerage: string;
   analysts: string;
   anlDt: string; // ISO
+  keyword: string; // matched search keyword(s), comma-joined
 }
 
 // Maps a GetReports dataSet array to reports. Pure (no I/O) for testability.
@@ -118,7 +119,7 @@ export function parseReports(dataSet: unknown): FnReport[] {
       const analysts = Array.isArray(r.ANALYSTS)
         ? (r.ANALYSTS as { NAME?: string }[]).map((a) => a.NAME).filter(Boolean).join(", ")
         : "";
-      return { rptId, title, brokerage, analysts, anlDt: anlDtToIso(String(r.ANL_DT ?? "")) };
+      return { rptId, title, brokerage, analysts, anlDt: anlDtToIso(String(r.ANL_DT ?? "")), keyword: "" };
     })
     .filter((r): r is FnReport => r !== null);
 }
@@ -127,10 +128,16 @@ export const FN_PDF_DOWNLOAD = PDF_DOWNLOAD;
 export const FN_UA = UA;
 export const fnguideReferer = (rptId: string) => `${BASE}/Research/PdfViewer?rptId=${rptId}`;
 
+// GetReports (srchKeyword) does NOT filter by keyword — it returns the full
+// report list regardless. GetSrchDeepReports with `title` does a real title
+// text search, so keyword filtering must go through it. Each returned report is
+// tagged with the keyword that matched it (aggregated across keywords upstream).
 export async function searchKeyword(cookie: string, keyword: string, minDt: string, maxDt: string): Promise<FnReport[]> {
   const fd = new FormData();
-  fd.append("srchKeyword", keyword);
-  fd.append("srchTypeCode", "");
+  fd.append("title", keyword);
+  fd.append("titleCond", "1");
+  fd.append("srchTyp", "");
+  fd.append("srchKeyword", "");
   fd.append("srchCode", "");
   fd.append("minDt", minDt);
   fd.append("maxDt", maxDt);
@@ -139,17 +146,20 @@ export async function searchKeyword(cookie: string, keyword: string, minDt: stri
   fd.append("curPage", "1");
   fd.append("perPage", "100");
   fd.append("useDb", "false");
+  fd.append("exclBlind", "true");
   fd.append("menuCd", "");
-  const res = await fetch(`${BASE}/Research/GetReports`, {
+  const res = await fetch(`${BASE}/Research/GetSrchDeepReports`, {
     method: "POST",
     headers: { "User-Agent": UA, Cookie: cookie, Referer: `${BASE}/Research/SearchReport`, "X-Requested-With": "XMLHttpRequest" },
     body: fd,
   });
-  if (!res.ok) throw new Error(`GetReports(${keyword}) ${res.status}`);
+  if (!res.ok) throw new Error(`GetSrchDeepReports(${keyword}) ${res.status}`);
   const json = JSON.parse(await res.text());
   // Results are nested at dataSet.reports (dataSet itself is an object with
   // reports/searchEngineResult/searchInfo).
-  return parseReports(json?.dataSet?.reports ?? json?.dataSet);
+  const reports = parseReports(json?.dataSet?.reports ?? json?.dataSet);
+  for (const r of reports) r.keyword = keyword;
+  return reports;
 }
 
 // Searches every keyword and returns in-window reports deduped by RPT_ID.
@@ -160,12 +170,18 @@ export async function searchAllKeywords(cookie: string, sinceDays = SINCE_DAYS):
   const maxDt = kstDot(new Date());
   const minDt = kstDot(new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000));
   const cutoffIso = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000).toISOString();
+  // A report can match several keywords — collect the matching keyword set per
+  // rptId so the board can show all of them in the 키워드 column.
   const byId = new Map<string, FnReport>();
+  const kwById = new Map<string, Set<string>>();
   for (const kw of FNGUIDE_KEYWORDS) {
     for (const rep of await searchKeyword(cookie, kw, minDt, maxDt)) {
-      if (rep.anlDt >= cutoffIso && !byId.has(rep.rptId)) byId.set(rep.rptId, rep);
+      if (rep.anlDt < cutoffIso) continue;
+      if (!byId.has(rep.rptId)) byId.set(rep.rptId, rep);
+      (kwById.get(rep.rptId) ?? kwById.set(rep.rptId, new Set()).get(rep.rptId)!).add(kw);
     }
   }
+  for (const [id, rep] of byId) rep.keyword = [...(kwById.get(id) ?? [])].join(", ");
   return [...byId.values()];
 }
 
@@ -196,6 +212,7 @@ async function reportToItem(cookie: string, r: FnReport): Promise<CollectedItem>
   return {
     board: "fnguide",
     category: "fnguide",
+    keyword: r.keyword,
     source: r.brokerage || "FnGuide",
     sourceRef: r.rptId,
     title: r.title,
@@ -220,13 +237,17 @@ export const fnguideCollector: Collector = {
     const cutoffIso = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     // Search every keyword, dedup reports by RPT_ID (a report can match many),
-    // keeping only reports within the collection window.
+    // keeping only reports within the collection window and tagging each with
+    // the keyword set that matched it.
     const byId = new Map<string, FnReport>();
+    const kwById = new Map<string, Set<string>>();
     const errors: string[] = [];
     for (const kw of FNGUIDE_KEYWORDS) {
       try {
         for (const rep of await searchKeyword(cookie, kw, minDt, maxDt)) {
-          if (rep.anlDt >= cutoffIso && !byId.has(rep.rptId)) byId.set(rep.rptId, rep);
+          if (rep.anlDt < cutoffIso) continue;
+          if (!byId.has(rep.rptId)) byId.set(rep.rptId, rep);
+          (kwById.get(rep.rptId) ?? kwById.set(rep.rptId, new Set()).get(rep.rptId)!).add(kw);
         }
       } catch (e) {
         errors.push(`${kw}: ${e instanceof Error ? e.message : String(e)}`);
@@ -235,6 +256,7 @@ export const fnguideCollector: Collector = {
     if (byId.size === 0 && errors.length === FNGUIDE_KEYWORDS.length) {
       throw new Error(`FnGuide search failed for all keywords: ${errors[0]}`);
     }
+    for (const [id, rep] of byId) rep.keyword = [...(kwById.get(id) ?? [])].join(", ");
     const items: CollectedItem[] = [];
     for (const rep of byId.values()) items.push(await reportToItem(cookie, rep));
     return items;

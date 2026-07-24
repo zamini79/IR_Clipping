@@ -8,6 +8,7 @@ function make(n: number): Clipping[] {
     id: `id-${i}`,
     category: "disclosure" as const,
     board: "seed",
+    keyword: "",
     title: `제목 ${i}`,
     source: i === 0 ? "금융감독원" : "한국거래소",
     sourceRef: `id-${i}`,

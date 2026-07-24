@@ -12,6 +12,7 @@ export interface Clipping {
   id: string;
   category: Category;
   board: string;
+  keyword: string; // FnGuide: matched search keyword(s), comma-joined; "" otherwise
   title: string;
   source: string;
   sourceRef: string;

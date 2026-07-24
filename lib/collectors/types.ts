@@ -12,6 +12,8 @@ export interface CollectedItem {
   board: string;
   // Board category; defaults to "disclosure" when omitted. FnGuide uses "fnguide".
   category?: "disclosure" | "fnguide";
+  // Matched search keyword(s), comma-joined. Only FnGuide populates this.
+  keyword?: string;
   source: string;
   sourceRef: string;
   title: string;

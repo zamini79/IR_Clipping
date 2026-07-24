@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     if ((count ?? 0) > 0) continue; // already have it — skip the expensive PDF work
 
     const item: CollectedItem = {
-      board: "fnguide", category: "fnguide", source: rep.brokerage || "FnGuide",
+      board: "fnguide", category: "fnguide", keyword: rep.keyword, source: rep.brokerage || "FnGuide",
       sourceRef: rep.rptId, title: rep.title, department: rep.analysts,
       collectedAt: rep.anlDt, sourceUrl: fnguideReferer(rep.rptId), body: "", files: [],
     };

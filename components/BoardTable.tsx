@@ -1,15 +1,18 @@
 "use client";
 import type { BoardRow } from "@/lib/board-view";
 
-const GRID = "52px 120px 1fr 130px 96px 68px";
+const GRID_BASE = "52px 120px 1fr 130px 96px 68px";
+const GRID_KW = "52px 120px 132px 1fr 130px 96px 68px";
 const th = { padding: "11px 0", font: "600 10.5px/1 'Pretendard'", letterSpacing: ".06em", color: "#8a8f99" } as const;
 
-export function BoardTable({ rows, onOpen }: { rows: BoardRow[]; onOpen: (id: string) => void }) {
+export function BoardTable({ rows, onOpen, showKeyword = false }: { rows: BoardRow[]; onOpen: (id: string) => void; showKeyword?: boolean }) {
+  const GRID = showKeyword ? GRID_KW : GRID_BASE;
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: GRID, padding: "0 36px", borderTop: "1px solid #1a2338", borderBottom: "1px solid #e6e2d7" }}>
         <span style={th}>No</span>
         <span style={th}>출처</span>
+        {showKeyword && <span style={th}>키워드</span>}
         <span style={th}>제목</span>
         <span style={th}>담당부서</span>
         <span style={th}>등록일</span>
@@ -22,6 +25,13 @@ export function BoardTable({ rows, onOpen }: { rows: BoardRow[]; onOpen: (id: st
           onMouseLeave={(e) => (e.currentTarget.style.background = "#fbfaf6")}>
           <div style={{ font: "500 12px 'IBM Plex Mono'", color: "#b3b7c0" }}>{r.no}</div>
           <div style={{ font: "500 12px 'Pretendard'", color: "#9a7b46", paddingRight: 10, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.source}</div>
+          {showKeyword && (
+            <div style={{ paddingRight: 10, minWidth: 0 }}>
+              {r.keyword
+                ? <span style={{ display: "inline-block", maxWidth: "100%", padding: "3px 8px", borderRadius: 4, background: "#f0ece0", font: "600 10.5px/1.3 'Pretendard'", color: "#8a6d3a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.keyword}>{r.keyword}</span>
+                : <span style={{ font: "500 11px 'Pretendard'", color: "#cfd2d8" }}>—</span>}
+            </div>
+          )}
           <div style={{ padding: "16px 0", minWidth: 0 }}>
             <div style={{ font: "500 14.5px/1.35 'Pretendard'", color: "#20242c", letterSpacing: "-.01em" }}>
               {r.title}

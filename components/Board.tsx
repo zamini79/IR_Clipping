@@ -57,7 +57,7 @@ export function Board({ data, updated }: { data: Record<Category, Clipping[]>; u
         </div>
 
         {/* table */}
-        <BoardTable rows={view.rows} onOpen={(id) => setDetailId(id)} />
+        <BoardTable rows={view.rows} onOpen={(id) => setDetailId(id)} showKeyword={activeKey === "fnguide"} />
 
         {/* pagination */}
         <Pagination page={view.page} pageCount={view.pageCount} onGo={(p) => setPage(p)} />

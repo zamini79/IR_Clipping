@@ -14,6 +14,7 @@ export interface ClippingRow {
   id: string;
   category: string;
   board: string;
+  keyword: string | null;
   title: string;
   source: string;
   source_ref: string;
@@ -30,6 +31,7 @@ export function mapRowToClipping(row: ClippingRow): Clipping {
     id: row.id,
     category: row.category as Category,
     board: row.board,
+    keyword: row.keyword ?? "",
     title: row.title,
     source: row.source,
     sourceRef: row.source_ref,

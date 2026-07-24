@@ -32,3 +32,6 @@ yarn-error.log*
 # tooling / local state
 .omc/
 .superpowers/
+
+# TS incremental build cache
+tsconfig.tsbuildinfo

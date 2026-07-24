@@ -6,6 +6,7 @@ export const PER_PAGE = 10;
 export interface BoardRow {
   id: string;
   no: string;
+  keyword: string;
   title: string;
   source: string;
   department: string;
@@ -41,7 +42,8 @@ export function buildBoardView(
     return (
       it.title.toLowerCase().includes(q) ||
       it.department.toLowerCase().includes(q) ||
-      (it.source ?? "").toLowerCase().includes(q)
+      (it.source ?? "").toLowerCase().includes(q) ||
+      (it.keyword ?? "").toLowerCase().includes(q)
     );
   });
 
@@ -54,6 +56,7 @@ export function buildBoardView(
   const rows: BoardRow[] = slice.map(({ it, no, isNew }) => ({
     id: it.id,
     no,
+    keyword: it.keyword ?? "",
     title: it.title,
     source: it.source,
     department: it.department,
