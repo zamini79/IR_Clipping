@@ -89,12 +89,10 @@ async function fetchKlcaFiles(detailUrl: string, cookie: string): Promise<Collec
 // returned unchanged (files stay []). Per-item failures are swallowed so one bad
 // detail page never aborts the collector.
 export async function enrichKlcaAttachments(items: CollectedItem[]): Promise<CollectedItem[]> {
-  let cookie: string | null;
-  try {
-    cookie = await klcaLogin();
-  } catch {
-    return items;
-  }
+  // Credentials absent -> silent skip (returns null). Credentials present but
+  // login fails (e.g. malformed env value) -> throw, so the collector surfaces
+  // the error via runCollectors instead of silently producing no attachments.
+  const cookie = await klcaLogin();
   if (!cookie) return items;
 
   const cutoff = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
