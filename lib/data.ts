@@ -1,5 +1,6 @@
 import type { Category, Clipping } from "./types";
 import { createPublicClient } from "./supabase";
+import { htmlToText } from "./format";
 
 export interface ClippingFileRow {
   id: string;
@@ -34,7 +35,7 @@ export function mapRowToClipping(row: ClippingRow): Clipping {
     sourceRef: row.source_ref,
     sourceUrl: row.source_url,
     department: row.department,
-    body: row.body,
+    body: htmlToText(row.body),
     collectedAt: row.collected_at,
     createdAt: row.created_at,
     files: (row.clipping_files ?? []).map((f) => ({

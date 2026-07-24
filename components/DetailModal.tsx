@@ -25,8 +25,14 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
             <span>담당부서 <b style={{ color: "#3a4150", marginLeft: 4 }}>{clipping.department}</b></span>
             <span>등록일 <b style={{ color: "#3a4150", marginLeft: 4, fontFamily: "'IBM Plex Mono'" }}>{formatDate(clipping.collectedAt)}</b></span>
           </div>
+          {clipping.sourceUrl && (
+            <a href={clipping.sourceUrl} target="_blank" rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 14, font: "600 12px 'Pretendard'", color: "#9a7b46", textDecoration: "none" }}>
+              원문 보기 <span aria-hidden style={{ fontSize: 11 }}>↗</span>
+            </a>
+          )}
         </div>
-        <div style={{ padding: "26px 32px", font: "400 13.5px/1.8 'Pretendard'", color: "#3a4150" }}>{clipping.body}</div>
+        <div style={{ padding: "26px 32px", font: "400 13.5px/1.8 'Pretendard'", color: "#3a4150", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{clipping.body}</div>
         <div style={{ padding: "0 32px 28px" }}>
           <div style={{ font: "600 10.5px 'Pretendard'", letterSpacing: ".06em", color: "#8a8f99", marginBottom: 10 }}>첨부파일</div>
           {clipping.files.map((f) => (
