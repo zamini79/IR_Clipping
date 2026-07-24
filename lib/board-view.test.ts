@@ -35,20 +35,20 @@ describe("buildBoardView", () => {
   });
 
   it("paginates to PER_PAGE items per page", () => {
-    const v = buildBoardView(make(8), { query: "", page: 0 });
+    const v = buildBoardView(make(PER_PAGE + 2), { query: "", page: 0 });
     expect(v.rows).toHaveLength(PER_PAGE);
-    expect(v.total).toBe(8);
+    expect(v.total).toBe(PER_PAGE + 2);
     expect(v.pageCount).toBe(2);
   });
 
   it("returns the second page slice", () => {
-    const v = buildBoardView(make(8), { query: "", page: 1 });
+    const v = buildBoardView(make(PER_PAGE + 2), { query: "", page: 1 });
     expect(v.rows).toHaveLength(2);
-    expect(v.rows[0].no).toBe("02");
+    expect(v.rows[0].no).toBe("02"); // (PER_PAGE+2) - PER_PAGE = 2
   });
 
   it("clamps page above range to last page", () => {
-    const v = buildBoardView(make(8), { query: "", page: 99 });
+    const v = buildBoardView(make(PER_PAGE + 2), { query: "", page: 99 });
     expect(v.page).toBe(1);
     expect(v.rows).toHaveLength(2);
   });

@@ -1,7 +1,7 @@
 import type { Clipping } from "./types";
 import { formatDate, padNo, attachmentLabel } from "./format";
 
-export const PER_PAGE = 6;
+export const PER_PAGE = 10;
 
 export interface BoardRow {
   id: string;

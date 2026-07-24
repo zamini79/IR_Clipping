@@ -11,17 +11,17 @@ function clip(cat: Category, i: number, extra: Partial<Clipping> = {}): Clipping
 }
 
 const data = {
-  disclosure: Array.from({ length: 8 }, (_, i) => clip("disclosure", i)),
+  disclosure: Array.from({ length: 14 }, (_, i) => clip("disclosure", i)),
   fnguide: [clip("fnguide", 0, { title: "FnGuide 리포트", department: "IR기획팀" })],
 } as Record<Category, Clipping[]>;
 
 describe("Board", () => {
-  it("shows the active tab count and paginates at 6 per page", () => {
+  it("shows the active tab count and paginates at 10 per page", () => {
     render(<Board data={data} updated="2026.07.22 09:12" />);
-    expect(screen.getByText(/검색결과/)).toHaveTextContent("8건");
-    // 6 rows on first page
+    expect(screen.getByText(/검색결과/)).toHaveTextContent("14건");
+    // 10 rows on first page (titles 0..9); title 13 is on page 2
     expect(screen.getByText("disclosure 제목 0")).toBeInTheDocument();
-    expect(screen.queryByText("disclosure 제목 7")).not.toBeInTheDocument();
+    expect(screen.queryByText("disclosure 제목 13")).not.toBeInTheDocument();
   });
 
   it("switching tab resets page and query, and swaps data", async () => {
@@ -52,9 +52,9 @@ describe("Board", () => {
   it("switching tabs resets page to 0", async () => {
     render(<Board data={data} updated="x" />);
 
-    // Go to page 2 of disclosure: page 1 holds titles 0..5, page 2 holds 6..7.
+    // Go to page 2 of disclosure: page 1 holds titles 0..9, page 2 holds 10..13.
     await userEvent.click(screen.getByText("2"));
-    expect(screen.getByText("disclosure 제목 6")).toBeInTheDocument();
+    expect(screen.getByText("disclosure 제목 10")).toBeInTheDocument();
     expect(screen.queryByText("disclosure 제목 0")).not.toBeInTheDocument();
 
     // Switch away and back; the tab handler should reset page to 0.
@@ -62,6 +62,6 @@ describe("Board", () => {
     await userEvent.click(screen.getByText("공시법규 규정"));
 
     expect(screen.getByText("disclosure 제목 0")).toBeInTheDocument();
-    expect(screen.queryByText("disclosure 제목 6")).not.toBeInTheDocument();
+    expect(screen.queryByText("disclosure 제목 10")).not.toBeInTheDocument();
   });
 });
