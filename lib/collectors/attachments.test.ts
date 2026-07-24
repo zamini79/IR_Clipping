@@ -25,7 +25,7 @@ describe("uploadAttachment", () => {
       upload: vi.fn().mockResolvedValue(undefined),
     };
     const r = await uploadAttachment(deps, "fss-bodo", "1182", file);
-    expect(deps.fetchBytes).toHaveBeenCalledWith("https://x/a.pdf", undefined);
+    expect(deps.fetchBytes).toHaveBeenCalledWith("https://x/a.pdf", undefined, undefined);
     expect(deps.upload).toHaveBeenCalledWith("fss-bodo/1182/a.pdf", bytes);
     expect(r).toEqual({ storagePath: "fss-bodo/1182/a.pdf", size: "4B", externalUrl: "https://x/a.pdf" });
   });
@@ -37,7 +37,7 @@ describe("uploadAttachment", () => {
     };
     const authed = { name: "b.pdf", externalUrl: "https://x/b.pdf", headers: { Cookie: "s=1" } };
     await uploadAttachment(deps, "klca-doc", "2613", authed);
-    expect(deps.fetchBytes).toHaveBeenCalledWith("https://x/b.pdf", { Cookie: "s=1" });
+    expect(deps.fetchBytes).toHaveBeenCalledWith("https://x/b.pdf", { Cookie: "s=1" }, undefined);
   });
 
   it("returns null (does not throw) when download fails", async () => {

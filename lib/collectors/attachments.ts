@@ -1,7 +1,11 @@
 import type { CollectedFile } from "./types";
 
 export interface AttachmentDeps {
-  fetchBytes: (url: string, headers?: Record<string, string>) => Promise<Uint8Array>;
+  fetchBytes: (
+    url: string,
+    headers?: Record<string, string>,
+    postForm?: Record<string, string>
+  ) => Promise<Uint8Array>;
   upload: (path: string, bytes: Uint8Array) => Promise<void>;
 }
 
@@ -30,7 +34,7 @@ export async function uploadAttachment(
   file: CollectedFile
 ): Promise<{ storagePath: string; size: string; externalUrl: string } | null> {
   try {
-    const bytes = await deps.fetchBytes(file.externalUrl, file.headers);
+    const bytes = await deps.fetchBytes(file.externalUrl, file.headers, file.postForm);
     const path = storagePathFor(board, sourceRef, file.name);
     await deps.upload(path, bytes);
     return { storagePath: path, size: humanSize(bytes.byteLength), externalUrl: file.externalUrl };

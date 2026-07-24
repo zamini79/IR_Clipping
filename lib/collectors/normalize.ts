@@ -17,7 +17,7 @@ export function normalizeUrl(raw: string): string {
 
 export function itemToRow(item: CollectedItem) {
   return {
-    category: "disclosure" as const,
+    category: item.category ?? "disclosure",
     board: item.board,
     source: item.source,
     source_ref: item.sourceRef,

@@ -100,8 +100,15 @@ export async function POST(req: Request) {
     for (const f of it.files) {
       const uploaded = await uploadAttachment(
         {
-          fetchBytes: async (url, headers) => {
-            const res = await fetch(url, headers ? { headers } : undefined);
+          fetchBytes: async (url, headers, postForm) => {
+            let res: Response;
+            if (postForm) {
+              const fd = new FormData();
+              for (const [k, v] of Object.entries(postForm)) fd.append(k, v);
+              res = await fetch(url, { method: "POST", headers, body: fd });
+            } else {
+              res = await fetch(url, headers ? { headers } : undefined);
+            }
             if (!res.ok) throw new Error(`fetch ${url}: HTTP ${res.status}`);
             const len = res.headers.get("content-length");
             if (len && Number(len) > MAX_ATTACHMENT_BYTES) {
