@@ -32,7 +32,7 @@ export function Board({ data, updated }: { data: Record<Category, Clipping[]>; u
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "28px 36px 0" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <div style={{ font: "600 10px/1 'IBM Plex Mono',monospace", letterSpacing: ".28em", color: "#9a7b46" }}>IR CLIPPING</div>
-            <div style={{ font: "600 24px/1 'Noto Serif KR',serif", color: "#1a2338", letterSpacing: "-.01em" }}>공시 · 규제 클리핑</div>
+            <div style={{ font: "600 24px/1 'Noto Serif KR',serif", color: "#1a2338", letterSpacing: "-.01em" }}>공시 · 규제 정보 클리핑</div>
           </div>
           <div style={{ font: "500 11.5px/1.5 'Pretendard'", color: "#8a8f99", textAlign: "right" }}>
             최근 수집<b style={{ display: "block", color: "#3a4150", fontWeight: 600 }}>{updated}</b>

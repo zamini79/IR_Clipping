@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "IR 클리핑 게시판",
-  description: "공시 · 규제 클리핑 및 FnGuide 리서치 클리핑 보드",
+  description: "공시 · 규제 정보 클리핑 및 FnGuide 리서치 클리핑 보드",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
