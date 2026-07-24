@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import type { Clipping } from "@/lib/types";
 import { formatDate } from "@/lib/format";
+import { isLoginRequiredBoard } from "@/lib/sources";
 
 export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clipping; activeLabel: string; onClose: () => void }) {
   useEffect(() => {
@@ -26,10 +27,15 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
             <span>등록일 <b style={{ color: "#3a4150", marginLeft: 4, fontFamily: "'IBM Plex Mono'" }}>{formatDate(clipping.collectedAt)}</b></span>
           </div>
           {clipping.sourceUrl && (
-            <a href={clipping.sourceUrl} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 14, font: "600 12px 'Pretendard'", color: "#9a7b46", textDecoration: "none" }}>
-              원문 보기 <span aria-hidden style={{ fontSize: 11 }}>↗</span>
-            </a>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14 }}>
+              <a href={clipping.sourceUrl} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "600 12px 'Pretendard'", color: "#9a7b46", textDecoration: "none" }}>
+                원문 보기 <span aria-hidden style={{ fontSize: 11 }}>↗</span>
+              </a>
+              {isLoginRequiredBoard(clipping.board) && (
+                <span style={{ font: "500 11px 'Pretendard'", color: "#b0928f" }}>(로그인 필요)</span>
+              )}
+            </div>
           )}
         </div>
         <div style={{ overflowY: "auto", flexGrow: 1, minHeight: 0 }}>

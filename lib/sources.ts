@@ -12,6 +12,15 @@ export const FNGUIDE_KEYWORDS = [
   "RSV", "IDT",
 ];
 
+// Boards whose 원문(detail) page is members-only: the external "원문 보기" link
+// redirects to a login page for public visitors, so the detail modal marks it
+// "(로그인 필요)". (KLCA 공문/보도자료/법령정보, KRX KCLIC.)
+export const LOGIN_REQUIRED_BOARDS = new Set(["klca-doc", "klca-news", "klca-law", "kclic"]);
+
+export function isLoginRequiredBoard(board: string): boolean {
+  return LOGIN_REQUIRED_BOARDS.has(board);
+}
+
 export interface CrawlSource {
   org: string; // 기관/출처
   board: string; // 게시판/코너 이름
