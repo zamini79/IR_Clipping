@@ -13,6 +13,7 @@ import { klcaLawCollector } from "@/lib/collectors/klca-law";
 import { klcaNewsCollector } from "@/lib/collectors/klca-news";
 import { fssBodoCollector } from "@/lib/collectors/fss-bodo";
 import { fssGuideCollector } from "@/lib/collectors/fss-guide";
+import { fssGuide02Collector } from "@/lib/collectors/fss-guide02";
 import { kclicCollector } from "@/lib/collectors/kclic";
 import type { CollectedItem } from "@/lib/collectors/types";
 
@@ -29,6 +30,7 @@ const COLLECTORS = [
   klcaNewsCollector,
   fssBodoCollector,
   fssGuideCollector,
+  fssGuide02Collector,
   kclicCollector,
 ];
 

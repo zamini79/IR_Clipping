@@ -25,6 +25,7 @@ export const CRAWL_SOURCES: CrawlSourceGroup[] = [
       { org: "공정거래위원회", board: "보도자료", url: "https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12" },
       { org: "금융감독원(DART)", board: "보도자료", url: "https://dart.fss.or.kr/info/searchBodo.do" },
       { org: "금융감독원(DART)", board: "안내 · 해설", url: "https://dart.fss.or.kr/info/searchGuide.do" },
+      { org: "금융감독원(DART)", board: "공시유의사항", url: "https://dart.fss.or.kr/info/searchGuide02.do" },
       { org: "상장회사협의회", board: "공문", url: "https://www.klca.or.kr/sub/comm/official_document.asp", note: "로그인 필요" },
       { org: "상장회사협의회", board: "보도자료", url: "https://www.klca.or.kr/sub/comm/news_release.asp", note: "로그인 필요" },
       { org: "상장회사협의회", board: "법령정보", url: "https://www.klca.or.kr/sub/law/legal_information.asp", note: "로그인 필요" },
