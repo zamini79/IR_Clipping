@@ -73,8 +73,11 @@ export async function fnguideLogin(): Promise<string | null> {
   }
 
   let res = await attempt("1");
-  if (res.returnCode === "80115" || res.returnCode === "80116") res = await attempt("2");
-  if (res.returnCode !== "0") {
+  // returnCode arrives as a string ("80115") or a number (0) depending on the
+  // response — normalize with String() before comparing.
+  const rc = (r: { returnCode: unknown }) => String(r.returnCode);
+  if (rc(res) === "80115" || rc(res) === "80116") res = await attempt("2");
+  if (rc(res) !== "0") {
     throw new Error(`FnGuide login failed (returnCode=${res.returnCode} ${res.returnMessage})`);
   }
   return cookieHeader(jar);
