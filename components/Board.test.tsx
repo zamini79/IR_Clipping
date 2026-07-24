@@ -49,6 +49,18 @@ describe("Board", () => {
     expect(screen.queryByText("첨부파일")).not.toBeInTheDocument();
   });
 
+  it("opens the collection-sources modal from the button and closes on Escape", async () => {
+    render(<Board data={data} updated="x" />);
+    expect(screen.queryByText("공정거래위원회")).not.toBeInTheDocument(); // modal closed
+
+    await userEvent.click(screen.getByRole("button", { name: /수집 사이트 리스트/ }));
+    expect(screen.getByText("공정거래위원회")).toBeInTheDocument();
+    expect(screen.getAllByText("금융위원회").length).toBeGreaterThan(0);
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByText("공정거래위원회")).not.toBeInTheDocument();
+  });
+
   it("switching tabs resets page to 0", async () => {
     render(<Board data={data} updated="x" />);
 

@@ -6,6 +6,7 @@ import { BoardTable } from "./BoardTable";
 import { SearchBar } from "./SearchBar";
 import { Pagination } from "./Pagination";
 import { DetailModal } from "./DetailModal";
+import { SourcesModal } from "./SourcesModal";
 
 const TABS: { key: Category; label: string }[] = [
   { key: "disclosure", label: "공시법규 규정" },
@@ -17,6 +18,7 @@ export function Board({ data, updated }: { data: Record<Category, Clipping[]>; u
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const activeKey = TABS[tab].key;
   const items = data[activeKey];
@@ -61,9 +63,21 @@ export function Board({ data, updated }: { data: Record<Category, Clipping[]>; u
 
         {/* pagination */}
         <Pagination page={view.page} pageCount={view.pageCount} onGo={(p) => setPage(p)} />
+
+        {/* collection sources */}
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "0 36px 26px" }}>
+          <button type="button" onClick={() => setSourcesOpen(true)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#fff", border: "1px solid #e6e2d7", borderRadius: 8, cursor: "pointer", font: "600 12px 'Pretendard'", color: "#6a7180", transition: "background .15s,border-color .15s" }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "#f4f1e8"; e.currentTarget.style.borderColor = "#d9d2c2"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#e6e2d7"; }}>
+            <span aria-hidden style={{ color: "#9a7b46" }}>🗂</span>
+            수집 사이트 리스트
+          </button>
+        </div>
       </div>
 
       {detail && <DetailModal clipping={detail} activeLabel={TABS[tab].label} onClose={() => setDetailId(null)} />}
+      {sourcesOpen && <SourcesModal onClose={() => setSourcesOpen(false)} />}
     </div>
   );
 }
