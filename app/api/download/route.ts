@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
+import { attachmentDisposition } from "@/lib/download-headers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,13 +54,24 @@ export async function GET(req: Request) {
     .createSignedUrl(storagePath, 60);
   if (error || !data) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-  let url = data.signedUrl;
-  if (params.get("dl") === "1") {
-    // Append `download` ourselves instead of using supabase-js's { download }
-    // option: that option percent-encodes the name and the Storage server
-    // encodes it a second time, so Korean filenames are saved as "%EC%9C%A0…".
-    // An empty value still forces the attachment, using the object key's name.
-    url += `&download=${encodeURIComponent(name)}`;
+  // Inline: redirect to the signed URL and let the browser render it.
+  if (params.get("dl") !== "1") return NextResponse.redirect(data.signedUrl);
+
+  // Download: stream the bytes through this route rather than redirecting, so
+  // the browser never touches a URL containing the filename. A signed URL ends
+  // in ".hwp", which the Hancom handler (rhwp) hooks to open the file instead
+  // of just saving it. Here the name travels in Content-Disposition only.
+  const upstream = await fetch(data.signedUrl);
+  if (!upstream.ok || !upstream.body) {
+    return NextResponse.json({ error: "fetch failed" }, { status: 502 });
   }
-  return NextResponse.redirect(url);
+  const headers = new Headers({
+    "Content-Type": "application/octet-stream",
+    "X-Content-Type-Options": "nosniff",
+    "Content-Disposition": attachmentDisposition(name),
+    "Cache-Control": "private, no-store",
+  });
+  const length = upstream.headers.get("content-length");
+  if (length) headers.set("Content-Length", length);
+  return new Response(upstream.body, { headers });
 }
