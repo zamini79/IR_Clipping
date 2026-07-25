@@ -61,6 +61,17 @@ describe("Board", () => {
     expect(screen.queryByText("공정거래위원회")).not.toBeInTheDocument();
   });
 
+  it("opens the post from initialDetailId (digest email deep link)", () => {
+    render(<Board data={data} updated="x" initialDetailId="disclosure-3" />);
+    expect(screen.getByText("첨부파일")).toBeInTheDocument(); // detail modal is open
+  });
+
+  it("starts on the FnGuide tab when the deep-linked post lives there", () => {
+    render(<Board data={data} updated="x" initialDetailId="fnguide-0" />);
+    expect(screen.getByText("첨부파일")).toBeInTheDocument();
+    expect(screen.getByText(/검색결과/)).toHaveTextContent("1건"); // FnGuide tab active
+  });
+
   it("switching tabs resets page to 0", async () => {
     render(<Board data={data} updated="x" />);
 

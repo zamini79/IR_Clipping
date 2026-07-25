@@ -45,29 +45,15 @@ const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
 // Backlog row shape returned by the un-notified query (Fix 1).
 interface BacklogRow {
   id: string;
-  board: string;
   source: string;
+  keyword: string | null;
   title: string;
-  source_url: string;
   collected_at: string;
 }
 
-// Maps a minimal backlog row to a CollectedItem for buildDigest, which only
-// reads source/sourceUrl/title/collectedAt. The remaining fields are
-// harmless defaults since they are not rendered by the digest.
-function backlogRowToItem(row: BacklogRow): CollectedItem {
-  return {
-    board: row.board,
-    source: row.source,
-    sourceRef: row.id,
-    title: row.title,
-    department: "",
-    collectedAt: row.collected_at,
-    sourceUrl: row.source_url,
-    body: "",
-    files: [],
-  };
-}
+// Where the digest's per-post links point. Overridable so preview deployments
+// can link to themselves.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ir-clipping.vercel.app";
 
 export async function POST(req: Request) {
   if (req.headers.get("x-cron-secret") !== process.env.CRON_SECRET) {
@@ -169,7 +155,7 @@ export async function POST(req: Request) {
   let notifiedCount = 0;
   const { data: backlog, error: backlogErr } = await supabase
     .from("clippings")
-    .select("id, board, source, title, source_url, collected_at")
+    .select("id, source, keyword, title, collected_at")
     .is("notified_at", null)
     .order("collected_at", { ascending: true })
     .limit(200);
@@ -177,11 +163,17 @@ export async function POST(req: Request) {
   if (backlogErr) {
     errors.push(`backlog query: ${backlogErr.message}`);
   } else if (backlog && backlog.length > 0) {
-    const backlogItems = (backlog as BacklogRow[]).map(backlogRowToItem);
+    const backlogItems = (backlog as BacklogRow[]).map((r) => ({
+      id: r.id,
+      source: r.source,
+      keyword: r.keyword ?? "",
+      title: r.title,
+      collectedAt: r.collected_at,
+    }));
     const { data: recips } = await supabase.from("alert_recipients").select("email").eq("active", true);
     const emails = (recips ?? []).map((r: { email: string }) => r.email);
     try {
-      await sendDigest(emails, buildDigest(backlogItems));
+      await sendDigest(emails, buildDigest(backlogItems, SITE_URL));
       const ids = (backlog as BacklogRow[]).map((r) => r.id);
       const { error: markErr } = await supabase
         .from("clippings")

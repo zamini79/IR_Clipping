@@ -15,7 +15,7 @@ export async function sendDigest(
     auth: { user, pass },
   });
   await transport.sendMail({
-    from: user,
+    from: `IR 클리핑 <${user}>`,
     to: recipients.join(", "),
     subject: digest.subject,
     text: digest.text,

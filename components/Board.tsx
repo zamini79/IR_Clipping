@@ -13,11 +13,23 @@ const TABS: { key: Category; label: string }[] = [
   { key: "fnguide", label: "FnGuide" },
 ];
 
-export function Board({ data, updated }: { data: Record<Category, Clipping[]>; updated: string }) {
-  const [tab, setTab] = useState(0);
+export function Board({
+  data,
+  updated,
+  initialDetailId = null,
+}: {
+  data: Record<Category, Clipping[]>;
+  updated: string;
+  initialDetailId?: string | null;
+}) {
+  // A digest email links to ?id=<clippingId>; open that post and start on the
+  // tab that holds it.
+  const [tab, setTab] = useState(
+    initialDetailId && data.fnguide.some((c) => c.id === initialDetailId) ? 1 : 0
+  );
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
-  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(initialDetailId);
   const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const activeKey = TABS[tab].key;
