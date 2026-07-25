@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
-import { attachmentDisposition } from "@/lib/download-headers";
+import { contentDisposition } from "@/lib/download-headers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,24 +54,32 @@ export async function GET(req: Request) {
     .createSignedUrl(storagePath, 60);
   if (error || !data) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-  // Inline: redirect to the signed URL and let the browser render it.
-  if (params.get("dl") !== "1") return NextResponse.redirect(data.signedUrl);
-
-  // Download: stream the bytes through this route rather than redirecting, so
-  // the browser never touches a URL containing the filename. A signed URL ends
-  // in ".hwp", which the Hancom handler (rhwp) hooks to open the file instead
-  // of just saving it. Here the name travels in Content-Disposition only.
-  const upstream = await fetch(data.signedUrl);
+  // Both modes stream through this route rather than redirecting to the signed
+  // URL. Two reasons: the browser never touches a URL ending in ".hwp" (the
+  // Hancom handler hooks those), and it never has to guess a filename from the
+  // URL — the Storage key is ASCII-sanitized, so that guess yields "0-_._.hwpx".
+  // The real name travels in Content-Disposition instead.
+  const download = params.get("dl") === "1";
+  const range = req.headers.get("range");
+  const upstream = await fetch(data.signedUrl, range ? { headers: { Range: range } } : undefined);
   if (!upstream.ok || !upstream.body) {
     return NextResponse.json({ error: "fetch failed" }, { status: 502 });
   }
+
   const headers = new Headers({
-    "Content-Type": "application/octet-stream",
+    // Downloads are deliberately typed as a generic binary so nothing tries to
+    // render them; inline keeps the stored type (application/pdf → PDF viewer).
+    "Content-Type": download
+      ? "application/octet-stream"
+      : upstream.headers.get("content-type") ?? "application/octet-stream",
     "X-Content-Type-Options": "nosniff",
-    "Content-Disposition": attachmentDisposition(name),
+    "Content-Disposition": contentDisposition(name, download ? "attachment" : "inline"),
     "Cache-Control": "private, no-store",
   });
-  const length = upstream.headers.get("content-length");
-  if (length) headers.set("Content-Length", length);
-  return new Response(upstream.body, { headers });
+  // Pass range metadata through so PDF viewers can seek within large files.
+  for (const h of ["content-length", "content-range", "accept-ranges", "etag"]) {
+    const v = upstream.headers.get(h);
+    if (v) headers.set(h, v);
+  }
+  return new Response(upstream.body, { status: upstream.status, headers });
 }

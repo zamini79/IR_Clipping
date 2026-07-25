@@ -22,9 +22,17 @@ export function postUrl(siteUrl: string, id: string): string {
   return `${siteUrl.replace(/\/+$/, "")}/?id=${encodeURIComponent(id)}`;
 }
 
-const TD = "padding:9px 10px;border-bottom:1px solid #efece3;font-size:13px;vertical-align:top";
-const TH =
-  "padding:10px;border-bottom:1px solid #1a2338;font-size:11px;letter-spacing:.04em;color:#6a7180;text-align:center";
+// Same type system as the board. Webfonts don't load in most mail clients
+// (Outlook on Windows ignores them entirely), so each stack falls back to a
+// Korean-capable system face — Pretendard if the reader has it, else Malgun
+// Gothic / Apple SD Gothic Neo.
+const SANS =
+  "'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',sans-serif";
+const SERIF = "'Noto Serif KR','Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',serif";
+const MONO = "'IBM Plex Mono',Consolas,'Courier New',monospace";
+
+const TD = `padding:9px 10px;border-bottom:1px solid #efece3;font-family:${SANS};font-size:13px;vertical-align:top`;
+const TH = `padding:10px;border-bottom:1px solid #1a2338;font-family:${SANS};font-size:11px;font-weight:600;letter-spacing:.04em;color:#6a7180;text-align:center`;
 
 /**
  * Builds the "new posts" digest: one table with
@@ -45,19 +53,19 @@ export function buildDigest(
     .map((it, i) => {
       const url = postUrl(siteUrl, it.id);
       return `<tr>
-<td style="${TD};text-align:center;color:#b3b7c0">${i + 1}</td>
+<td style="${TD};font-family:${MONO};text-align:center;color:#b3b7c0">${i + 1}</td>
 <td style="${TD};text-align:center;color:#9a7b46;white-space:nowrap">${esc(it.source)}</td>
 <td style="${TD};text-align:center;color:#8a6d3a">${esc(it.keyword) || "—"}</td>
 <td style="${TD};color:#20242c">${esc(it.title)}</td>
-<td style="${TD};text-align:center;color:#6a7180;white-space:nowrap">${formatDate(it.collectedAt)}</td>
+<td style="${TD};font-family:${MONO};text-align:center;color:#6a7180;white-space:nowrap">${formatDate(it.collectedAt)}</td>
 <td style="${TD};text-align:center;white-space:nowrap"><a href="${esc(url)}" style="color:#9a7b46;font-weight:600;text-decoration:none">바로가기 →</a></td>
 </tr>`;
     })
     .join("");
 
-  const html = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;color:#20242c">
-<p style="font:600 11px/1 monospace;letter-spacing:.2em;color:#9a7b46;margin:0 0 6px">IR CLIPPING</p>
-<h2 style="font-size:18px;margin:0 0 14px;color:#1a2338">공시 · 규제 정보 클리핑 신규 ${rows.length}건</h2>
+  const html = `<div style="font-family:${SANS};color:#20242c">
+<p style="font-family:${MONO};font-size:11px;font-weight:600;letter-spacing:.2em;color:#9a7b46;margin:0 0 6px">IR CLIPPING</p>
+<h2 style="font-family:${SERIF};font-size:19px;font-weight:600;margin:0 0 14px;color:#1a2338">공시 · 규제 정보 클리핑 신규 ${rows.length}건</h2>
 <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;max-width:900px;background:#fbfaf6">
 <thead><tr style="background:#f4f1e8">
 <th style="${TH}">No</th><th style="${TH}">출처</th><th style="${TH}">키워드</th>
@@ -65,7 +73,7 @@ export function buildDigest(
 </tr></thead>
 <tbody>${body}</tbody>
 </table>
-<p style="margin:16px 0 0;font-size:12px;color:#8a8f99">
+<p style="margin:16px 0 0;font-family:${SANS};font-size:12px;color:#8a8f99">
 <a href="${esc(siteUrl)}" style="color:#9a7b46">게시판 전체 보기</a>
 </p>
 </div>`;
