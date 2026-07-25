@@ -23,7 +23,7 @@ export function BoardTable({ rows, onOpen, showKeyword = false }: { rows: BoardR
           style={{ display: "grid", gridTemplateColumns: GRID, padding: "0 36px", alignItems: "center", borderBottom: "1px solid #efece3", cursor: "pointer", background: "#fbfaf6", transition: "background .15s" }}
           onMouseEnter={(e) => (e.currentTarget.style.background = "#f4f1e8")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "#fbfaf6")}>
-          <div style={{ font: "500 12px 'IBM Plex Mono'", color: "#b3b7c0" }}>{r.no}</div>
+          <div style={{ font: "500 12px 'IBM Plex Mono'", color: "#b3b7c0", textAlign: "center" }}>{r.no}</div>
           <div style={{ font: "500 12px 'Pretendard'", color: "#9a7b46", textAlign: "center", padding: "0 8px", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.source}</div>
           {showKeyword && (
             <div style={{ padding: "0 8px", minWidth: 0, textAlign: "center" }}>
