@@ -52,6 +52,15 @@ export function klcaFileUrl(token: string): string {
   return `${FILE_BASE}${token}`;
 }
 
+// Parses the post body from a KLCA detail page. The board-read template holds
+// the content in `div.b_content`; the inner HTML is returned so the read-time
+// htmlToText() renders its line breaks. Returns "" when absent (some posts have
+// no inline body — their content lives entirely in the attachment).
+export function parseKlcaBody(html: string): string {
+  const $ = cheerio.load(html);
+  return ($("div.b_content").first().html() ?? "").trim();
+}
+
 // Parses the "첨부파일" section of a KLCA detail page into {name, token} pairs.
 // Each attachment is an anchor: <a href="javascript:BinDownload('TOKEN');">NAME</a>.
 export function parseKlcaAttachments(html: string): { name: string; token: string }[] {
@@ -70,24 +79,26 @@ export function parseKlcaAttachments(html: string): { name: string; token: strin
 
 const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
 
-// Fetches a login-gated KLCA detail page and returns its attachments as
-// CollectedFiles, each carrying the session cookie so the download step can
-// reach the file (KLCA file URLs are members-only).
-async function fetchKlcaFiles(detailUrl: string, cookie: string): Promise<CollectedFile[]> {
+// Fetches a login-gated KLCA detail page once and returns both its body and its
+// attachments (as CollectedFiles carrying the session cookie so the download
+// step can reach the members-only file URLs).
+async function fetchKlcaDetail(detailUrl: string, cookie: string): Promise<{ body: string; files: CollectedFile[] }> {
   const res = await fetch(detailUrl, { headers: { "User-Agent": UA, Cookie: cookie, Referer: detailUrl } });
   if (!res.ok) throw new Error(`KLCA detail ${res.status}`);
   const html = iconv.decode(Buffer.from(await res.arrayBuffer()), "euc-kr");
-  return parseKlcaAttachments(html).map((f) => ({
+  const files = parseKlcaAttachments(html).map((f) => ({
     name: f.name,
     externalUrl: klcaFileUrl(f.token),
     headers: { "User-Agent": UA, Cookie: cookie, Referer: detailUrl },
   }));
+  return { body: parseKlcaBody(html), files };
 }
 
-// Enriches recent items (within the collect window) with attachments from their
-// login-gated detail pages. Without KLCA_USER/KLCA_PASSWORD the items are
-// returned unchanged (files stay []). Per-item failures are swallowed so one bad
-// detail page never aborts the collector.
+// Enriches recent items (within the collect window) with the body and
+// attachments from their login-gated detail pages. Without KLCA_USER/
+// KLCA_PASSWORD the items are returned unchanged (body/files stay empty).
+// Per-item failures are swallowed so one bad detail page never aborts the
+// collector.
 export async function enrichKlcaAttachments(items: CollectedItem[]): Promise<CollectedItem[]> {
   // Credentials absent -> silent skip (returns null). Credentials present but
   // login fails (e.g. malformed env value) -> throw, so the collector surfaces
@@ -99,9 +110,11 @@ export async function enrichKlcaAttachments(items: CollectedItem[]): Promise<Col
   for (const it of items) {
     if (it.collectedAt < cutoff) continue;
     try {
-      it.files = await fetchKlcaFiles(it.sourceUrl, cookie);
+      const { body, files } = await fetchKlcaDetail(it.sourceUrl, cookie);
+      it.files = files;
+      it.body = body;
     } catch {
-      // keep files: [] on failure
+      // keep body: "" / files: [] on failure
     }
   }
   return items;

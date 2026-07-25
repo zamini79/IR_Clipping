@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { parseKlcaAttachments, klcaFileUrl } from "./klca-auth";
+import { parseKlcaAttachments, parseKlcaBody, klcaFileUrl } from "./klca-auth";
 
 // PII-free hand-crafted fixture, stored as UTF-8.
 const html = readFileSync(new URL("./__fixtures__/klca-detail.html", import.meta.url), "utf8");
@@ -26,6 +26,18 @@ describe("parseKlcaAttachments", () => {
 
   it("returns [] when there is no attachment section", () => {
     expect(parseKlcaAttachments("<html><body>no files</body></html>")).toEqual([]);
+  });
+});
+
+describe("parseKlcaBody", () => {
+  it("extracts the detail-page body (div.b_content) as HTML", () => {
+    const body = parseKlcaBody(html);
+    expect(body.length).toBeGreaterThan(0);
+    expect(body).toContain("기업공시서식 작성기준");
+    expect(body).toMatch(/<p>/i); // inner HTML preserved for read-time htmlToText
+  });
+  it("returns '' when there is no body container", () => {
+    expect(parseKlcaBody("<html><body>no body</body></html>")).toBe("");
   });
 });
 
