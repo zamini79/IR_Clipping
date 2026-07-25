@@ -1,5 +1,22 @@
 import { describe, it, expect, vi } from "vitest";
-import { storagePathFor, uploadAttachment } from "./attachments";
+import { storagePathFor, uploadAttachment, contentTypeFor } from "./attachments";
+
+describe("contentTypeFor", () => {
+  it("maps known extensions so browsers render them correctly", () => {
+    // Supabase defaults uploads to text/plain, which breaks inline PDF viewing.
+    expect(contentTypeFor("보고서.pdf")).toBe("application/pdf");
+    expect(contentTypeFor("첨부.ZIP")).toBe("application/zip");
+    expect(contentTypeFor("사진.jpg")).toBe("image/jpeg");
+  });
+  it("uses octet-stream for hwp/hwpx so the file is saved, not handed to 한컴(rhwp)", () => {
+    expect(contentTypeFor("공문.hwp")).toBe("application/octet-stream");
+    expect(contentTypeFor("공문.hwpx")).toBe("application/octet-stream");
+  });
+  it("falls back to octet-stream for unknown or missing extensions", () => {
+    expect(contentTypeFor("데이터.bin")).toBe("application/octet-stream");
+    expect(contentTypeFor("noext")).toBe("application/octet-stream");
+  });
+});
 
 describe("storagePathFor", () => {
   it("keeps ASCII names, replacing spaces with underscore", () => {
@@ -26,7 +43,7 @@ describe("uploadAttachment", () => {
     };
     const r = await uploadAttachment(deps, "fss-bodo", "1182", file);
     expect(deps.fetchBytes).toHaveBeenCalledWith("https://x/a.pdf", undefined, undefined);
-    expect(deps.upload).toHaveBeenCalledWith("fss-bodo/1182/a.pdf", bytes);
+    expect(deps.upload).toHaveBeenCalledWith("fss-bodo/1182/a.pdf", bytes, "application/pdf");
     expect(r).toEqual({ storagePath: "fss-bodo/1182/a.pdf", size: "4B", externalUrl: "https://x/a.pdf" });
   });
 

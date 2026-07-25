@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
-import { storagePathFor, humanSize } from "@/lib/collectors/attachments";
+import { storagePathFor, humanSize, contentTypeFor } from "@/lib/collectors/attachments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,7 +72,9 @@ export async function POST(req: Request) {
       // stays in clipping_files.name.
       const ext = row.name.match(/\.[A-Za-z0-9]+$/)?.[0] ?? "";
       const path = storagePathFor(parent.board, parent.source_ref, `${row.id}${ext}`);
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, bytes, { upsert: true });
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, bytes, { upsert: true, contentType: contentTypeFor(row.name) });
       if (upErr) throw new Error(`upload: ${upErr.message}`);
 
       const { error: updErr } = await supabase

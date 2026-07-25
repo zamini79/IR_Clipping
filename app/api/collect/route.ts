@@ -124,8 +124,8 @@ export async function POST(req: Request) {
             }
             return buf;
           },
-          upload: async (path, bytes) => {
-            const { error: upErr } = await supabase.storage.from("clipping-files").upload(path, bytes, { upsert: true });
+          upload: async (path, bytes, contentType) => {
+            const { error: upErr } = await supabase.storage.from("clipping-files").upload(path, bytes, { upsert: true, contentType });
             if (upErr) throw upErr;
           },
         },
