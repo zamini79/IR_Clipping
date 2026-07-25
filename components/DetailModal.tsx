@@ -49,12 +49,14 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
               <span style={{ font: "500 11px 'IBM Plex Mono'", color: "#9aa0ab" }}>{f.size}</span>
               {f.storagePath ? (
                 <span style={{ display: "flex", alignItems: "center", gap: 9, flexShrink: 0 }}>
-                  {/* 열기: inline in a new tab. 다운로드: same tab, served as an attachment. */}
-                  <a href={`/api/download?path=${encodeURIComponent(f.storagePath)}`}
+                  {/* Addressed by file id, never by name: a URL ending in ".hwp" makes the
+                      Hancom extension inject an "H" button + "rhwp로 열기" popup on the link.
+                      열기: inline in a new tab. 다운로드: same tab, served as an attachment. */}
+                  <a href={`/api/download?id=${encodeURIComponent(f.id)}`}
                     target="_blank" rel="noopener noreferrer"
                     style={{ font: "600 11.5px 'Pretendard'", color: "#9a7b46", textDecoration: "none" }}>열기</a>
                   <span aria-hidden style={{ color: "#e0dbcf" }}>|</span>
-                  <a href={`/api/download?path=${encodeURIComponent(f.storagePath)}&dl=1`}
+                  <a href={`/api/download?id=${encodeURIComponent(f.id)}&dl=1`}
                     style={{ font: "600 11.5px 'Pretendard'", color: "#9a7b46", textDecoration: "none" }}>다운로드</a>
                 </span>
               ) : f.externalUrl ? (

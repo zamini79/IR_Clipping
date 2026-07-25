@@ -32,12 +32,21 @@ describe("DetailModal 첨부파일", () => {
     render(<DetailModal clipping={clip("fsc-bodo", archived)} activeLabel="공시법규 규정" onClose={() => {}} />);
     const open = screen.getByText("열기").closest("a")!;
     const dl = screen.getByText("다운로드").closest("a")!;
-    const path = encodeURIComponent("fsc-bodo/1/0-a.pdf");
-    expect(open).toHaveAttribute("href", `/api/download?path=${path}`);
+    expect(open).toHaveAttribute("href", "/api/download?id=f1");
     expect(open).toHaveAttribute("target", "_blank");
-    expect(dl).toHaveAttribute("href", `/api/download?path=${path}&dl=1`);
+    expect(dl).toHaveAttribute("href", "/api/download?id=f1&dl=1");
     // The download must stay in the current tab so the board isn't navigated away.
     expect(dl).not.toHaveAttribute("target");
+  });
+
+  it("never puts the filename in the link (the Hancom extension hooks .hwp URLs)", () => {
+    const hwp = [{ id: "f9", name: "공문.hwp", size: "30KB", storagePath: "klca-doc/1/0-_.hwp", externalUrl: "" }];
+    render(<DetailModal clipping={clip("klca-doc", hwp)} activeLabel="공시법규 규정" onClose={() => {}} />);
+    for (const label of ["열기", "다운로드"]) {
+      const href = screen.getByText(label).closest("a")!.getAttribute("href")!;
+      expect(href).not.toContain(".hwp");
+      expect(href).toContain("id=f9");
+    }
   });
 
   it("falls back to the source URL when the file was not archived", () => {
