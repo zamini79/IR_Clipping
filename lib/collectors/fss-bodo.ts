@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { Collector, CollectedItem } from "./types";
+import { enrichFssBodies } from "./fss-detail";
 
 const BASE = "https://dart.fss.or.kr";
 const FSS_FILE_BASE = "https://www.fss.or.kr";
@@ -94,6 +95,6 @@ export const fssBodoCollector: Collector = {
   async collect() {
     const res = await fetch(FSS_BODO_LIST, { headers: { "User-Agent": BROWSER_UA } });
     if (!res.ok) throw new Error(`FSS-BODO ${res.status}`);
-    return parseFssBodo(await res.text());
+    return enrichFssBodies(parseFssBodo(await res.text()));
   },
 };

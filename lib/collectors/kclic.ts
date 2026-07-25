@@ -121,6 +121,63 @@ export function parseKclicNotices(html: string): KclicNotice[] {
   return out;
 }
 
+const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
+
+/**
+ * Extracts the notice body from a KCLIC detail page, whose content lives in the
+ * `td.editPad` cell. The inner HTML is returned so the read-time htmlToText()
+ * renders its <br> line breaks. Returns "" when the cell is absent.
+ */
+export function parseKclicBody(html: string): string {
+  const $ = cheerio.load(html);
+  return ($("td.editPad").first().html() ?? "").trim();
+}
+
+/**
+ * Fetches a notice's detail page. There is no shareable URL — the list's
+ * fn_detail() submits the search form as POST with method=readNoticeDetail and
+ * the notice id in `sprtRoomNo`, so we replay that request.
+ */
+export async function fetchKclicBody(cookie: string, contId: string): Promise<string> {
+  const body = new URLSearchParams({
+    method: "readNoticeDetail",
+    sprtRoomNo: contId,
+    SCREN_ID: "JLDODS25010.jsp",
+    SCREN_PROCES_TP_CD: "01",
+    pageIndex: "1",
+  }).toString();
+  const res = await fetch(KCLIC_NOTICE, {
+    method: "POST",
+    headers: {
+      "User-Agent": UA,
+      Cookie: cookie,
+      Referer: KCLIC_NOTICE,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body,
+  });
+  if (!res.ok) throw new Error(`KCLIC detail ${res.status}`);
+  return parseKclicBody(await res.text());
+}
+
+/**
+ * The list rows carry no body text, so enrich recent items (within the collect
+ * window) from their detail pages. Per-item failures are swallowed so one bad
+ * page never aborts the run.
+ */
+export async function enrichKclicBodies(items: CollectedItem[], cookie: string): Promise<CollectedItem[]> {
+  const cutoff = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  for (const it of items) {
+    if (it.collectedAt < cutoff) continue;
+    try {
+      it.body = await fetchKclicBody(cookie, it.sourceRef);
+    } catch {
+      // keep body: "" on failure
+    }
+  }
+  return items;
+}
+
 // Converts parsed notices to CollectedItems. Attachments carry the session
 // cookie so the download step can reach the (login-gated) file endpoint. The
 // detail page is POST-only (no shareable URL), so sourceUrl points at the list.
@@ -150,6 +207,6 @@ export const kclicCollector: Collector = {
     if (!cookie) return []; // credentials absent -> nothing (silent)
     const res = await fetch(KCLIC_NOTICE, { headers: { "User-Agent": UA, Cookie: cookie } });
     if (!res.ok) throw new Error(`KCLIC notice ${res.status}`);
-    return noticesToItems(parseKclicNotices(await res.text()), cookie);
+    return enrichKclicBodies(noticesToItems(parseKclicNotices(await res.text()), cookie), cookie);
   },
 };

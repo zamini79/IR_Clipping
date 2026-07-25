@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { Collector, CollectedItem } from "./types";
+import { enrichFssBodies } from "./fss-detail";
 
 const BASE = "https://dart.fss.or.kr";
 const FSS_FILE_BASE = "https://www.fss.or.kr";
@@ -96,6 +97,6 @@ export const fssGuide02Collector: Collector = {
   async collect() {
     const res = await fetch(FSS_GUIDE02_LIST, { headers: { "User-Agent": BROWSER_UA } });
     if (!res.ok) throw new Error(`FSS-GUIDE02 ${res.status}`);
-    return parseFssGuide02(await res.text());
+    return enrichFssBodies(parseFssGuide02(await res.text()));
   },
 };

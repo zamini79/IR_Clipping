@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { parseKclicNotices, kclicFileUrl, noticesToItems } from "./kclic";
+import { parseKclicNotices, kclicFileUrl, noticesToItems, parseKclicBody } from "./kclic";
 
 const html = readFileSync(new URL("./__fixtures__/kclic-notice.html", import.meta.url), "utf8");
 
@@ -26,6 +26,19 @@ describe("parseKclicNotices", () => {
       { seq: "2", name: "신구조문대비표.hwp" },
     ]);
     expect(notices[1].files.length).toBe(1);
+  });
+});
+
+describe("parseKclicBody", () => {
+  // The detail page (POST method=readNoticeDetail) holds the notice text in td.editPad.
+  const detail = `<html><body><table><tr><td class="editPad">「유가증권시장 공시규정」이 붙임과 같이 개정되었음을 알려드립니다.<br></td></tr></table></body></html>`;
+  it("extracts the detail body (td.editPad) as HTML", () => {
+    const body = parseKclicBody(detail);
+    expect(body).toContain("유가증권시장 공시규정");
+    expect(body).toMatch(/<br\s*\/?>/i);
+  });
+  it("returns '' when the content cell is absent", () => {
+    expect(parseKclicBody("<html><body>no body</body></html>")).toBe("");
   });
 });
 
