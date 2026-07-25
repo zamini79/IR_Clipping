@@ -1,9 +1,20 @@
+/**
+ * Formats a post's date as "YYYY.MM.DD" in KST.
+ *
+ * Collectors store a source's day as KST midnight, i.e. 15:00Z on the previous
+ * day — formatting those UTC parts would show every post one day early.
+ */
 export function formatDate(iso: string): string {
   const d = new Date(iso);
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(d.getUTCDate()).padStart(2, "0");
-  return `${y}.${m}.${day}`;
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(d)
+    .replace(/-/g, ".");
 }
 
 // Formats an ISO timestamp as "YYYY.MM.DD HH:mm" in KST (Asia/Seoul). Used for

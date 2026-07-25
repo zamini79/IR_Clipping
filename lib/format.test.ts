@@ -8,6 +8,14 @@ describe("formatDate", () => {
   it("zero-pads month and day", () => {
     expect(formatDate("2026-01-05T00:00:00.000Z")).toBe("2026.01.05");
   });
+  it("renders KST-midnight timestamps as that KST day, not the UTC day before", () => {
+    // Collectors store a source's day as KST midnight = 15:00Z the day before.
+    expect(formatDate("2026-07-22T15:00:00.000Z")).toBe("2026.07.23");
+    expect(formatDate("2025-12-31T15:00:00.000Z")).toBe("2026.01.01");
+  });
+  it("returns '' for an invalid date", () => {
+    expect(formatDate("not-a-date")).toBe("");
+  });
 });
 
 describe("formatDateTimeKst", () => {
