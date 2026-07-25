@@ -74,7 +74,10 @@ export async function GET(req: Request) {
       : upstream.headers.get("content-type") ?? "application/octet-stream",
     "X-Content-Type-Options": "nosniff",
     "Content-Disposition": contentDisposition(name, download ? "attachment" : "inline"),
-    "Cache-Control": "private, no-store",
+    // Inline avoids `no-store`: PDF viewers (notably the Adobe plugin on
+    // Windows) re-request the document and fall back to downloading it when the
+    // response may not be held even briefly. Still private — never CDN-cached.
+    "Cache-Control": download ? "private, no-store" : "private, max-age=0, must-revalidate",
   });
   // Pass range metadata through so PDF viewers can seek within large files.
   for (const h of ["content-length", "content-range", "accept-ranges", "etag"]) {
