@@ -72,10 +72,17 @@ export async function getLastRunAt(): Promise<string | null> {
 
 export async function getBoardData(): Promise<Record<Category, Clipping[]>> {
   const supabase = createPublicClient();
+  // Newest first. Sources only publish a date, so collectors store KST midnight
+  // and same-day posts tie — 9 of them on one date here. Without a tiebreaker
+  // Postgres is free to order those arbitrarily, which would shuffle the No
+  // column and the NEW badges between loads. created_at (when we ingested it)
+  // approximates real publication order; id makes the ordering total.
   const { data, error } = await supabase
     .from("clippings")
     .select("*, clipping_files(*)")
-    .order("collected_at", { ascending: false });
+    .order("collected_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
 
   if (error) throw new Error(`Failed to load clippings: ${error.message}`);
 
