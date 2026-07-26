@@ -32,10 +32,12 @@ describe("parseFtcBodo", () => {
   it("extracts department from the row", () => {
     expect(items[0].department).toBe("기업집단결합정책과");
   });
-  it("extracts attachment download link present in the list row", () => {
-    const withFiles = items.find((it) => it.files.length > 0);
-    expect(withFiles).toBeDefined();
-    expect(withFiles!.files[0].externalUrl).toMatch(/^https?:\/\/.*downloadBbsFileAll\.do/);
+  it("takes no attachment from the list row (its only link is the bulk archive)", () => {
+    // downloadBbsFileAll.do is a zip of every file, labelled "파일다운로드";
+    // storing it would hide the individually named documents. The detail page
+    // supplies the real attachments instead.
+    expect(items.every((it) => it.files.length === 0)).toBe(true);
+    expect(html).toContain("downloadBbsFileAll.do"); // the link is present, deliberately ignored
   });
 });
 

@@ -38,17 +38,6 @@ export function parseFtcBodo(html: string): CollectedItem[] {
     const dateText = tds.eq(4).text().trim();
     const collectedAt = parseDateToIso(dateText);
 
-    const files = tds
-      .eq(5)
-      .find("a")
-      .toArray()
-      .filter((el) => (el.attribs?.href ?? "").includes("downloadBbsFileAll.do"))
-      .map((el) => {
-        const $a = $(el);
-        const fhref = $a.attr("href") ?? "";
-        return { name: $a.text().trim(), externalUrl: new URL(fhref, BASE).href };
-      });
-
     items.push({
       board: "ftc-bodo",
       source: "공정거래위원회",
@@ -58,7 +47,11 @@ export function parseFtcBodo(html: string): CollectedItem[] {
       collectedAt,
       sourceUrl: url,
       body: "",
-      files,
+      // The only attachment link in a list row is downloadBbsFileAll.do — a zip
+      // of every file, labelled "파일다운로드". Storing it would replace three
+      // properly named documents with one mystery archive, so the real
+      // attachments come from the detail page (enrichFtcBodo) instead.
+      files: [],
     });
   });
 
@@ -94,21 +87,26 @@ export function parseFtcDetail(html: string): { body: string; files: CollectedFi
   return { body, files };
 }
 
-// The list rows carry no body and only a generic download-all link. Enrich
-// recent items from their (public) detail page: real body text + per-file
-// attachments. Per-item failures are swallowed so one bad page doesn't abort.
+// The list rows carry neither body nor usable attachments, so both come from
+// the detail page. Retried once: a single flaky fetch would otherwise store the
+// post with an empty body and no files (the hourly run repairs such rows later,
+// but succeeding now is better). Per-item failures are swallowed so one bad
+// page doesn't abort the collector.
 export async function enrichFtcBodo(items: CollectedItem[]): Promise<CollectedItem[]> {
   const cutoff = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
   for (const it of items) {
     if (it.collectedAt < cutoff || !it.sourceUrl) continue;
-    try {
-      const res = await fetch(it.sourceUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-      if (!res.ok) continue;
-      const { body, files } = parseFtcDetail(await res.text());
-      it.body = body;
-      if (files.length) it.files = files; // replace generic list file with real per-file attachments
-    } catch {
-      // keep list-derived values on failure
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await fetch(it.sourceUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+        if (!res.ok) continue;
+        const { body, files } = parseFtcDetail(await res.text());
+        it.body = body;
+        it.files = files;
+        break;
+      } catch {
+        // retry once, then leave the item as collected from the list
+      }
     }
   }
   return items;

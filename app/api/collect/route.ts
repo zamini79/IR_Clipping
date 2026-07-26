@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
-import { runCollectors } from "@/lib/collect-run";
+import { runCollectors, type ExistingRow } from "@/lib/collect-run";
 import { itemToRow, dedupKey } from "@/lib/collectors/normalize";
 import { uploadAttachment } from "@/lib/collectors/attachments";
 import { buildDigest } from "@/lib/notify/digest";
@@ -85,7 +85,12 @@ export async function POST(req: Request) {
       }
       throw new Error(`insert ${dedupKey(it)}: ${error.message}`);
     }
-    const clippingId = data!.id as string;
+    await storeFiles(data!.id as string, it);
+  }
+
+  // Downloads every attachment of `it` into Storage and records the rows.
+  // Shared by first insert and by repair, so both archive files identically.
+  async function storeFiles(clippingId: string, it: CollectedItem) {
     let fileIdx = 0;
     for (const f of it.files) {
       const uploaded = await uploadAttachment(
@@ -135,17 +140,50 @@ export async function POST(req: Request) {
     }
   }
 
+  // Tops up a row an earlier run stored incompletely. Three terminal defects are
+  // repairable, and each stops recurring once fixed: no body, no attachments at
+  // all, an attachment that is really the source's "download everything" archive
+  // (FTC's downloadBbsFileAll.do, stored as one file named "파일다운로드"), or a
+  // file whose bytes never made it into Storage.
+  async function repairExisting(existing: ExistingRow, it: CollectedItem): Promise<boolean> {
+    let changed = false;
+
+    if (!existing.body.trim() && it.body.trim()) {
+      const { error } = await supabase.from("clippings").update({ body: it.body }).eq("id", existing.id);
+      if (error) throw new Error(`body: ${error.message}`);
+      changed = true;
+    }
+
+    const isBulkArchive = existing.files.some((f) => f.external_url.includes("downloadBbsFileAll.do"));
+    const notArchived = existing.files.some((f) => !f.storage_path);
+    if (it.files.length > 0 && (existing.files.length === 0 || isBulkArchive || notArchived)) {
+      const paths = existing.files.map((f) => f.storage_path).filter(Boolean);
+      if (paths.length) await supabase.storage.from("clipping-files").remove(paths);
+      if (existing.files.length) await supabase.from("clipping_files").delete().eq("clipping_id", existing.id);
+      await storeFiles(existing.id, it);
+      changed = true;
+    }
+    return changed;
+  }
+
   const cutoffIso = new Date(Date.now() - SINCE_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  const { newItems, errors: collectErrors } = await runCollectors({
+  const { newItems, repaired, errors: collectErrors } = await runCollectors({
     collectors: COLLECTORS,
     minCollectedAt: cutoffIso,
-    isExisting: async (key) => {
+    findExisting: async (key) => {
       const [board, ...rest] = key.split("::");
       const source_ref = rest.join("::");
-      const { count } = await supabase.from("clippings").select("id", { count: "exact", head: true }).eq("board", board).eq("source_ref", source_ref);
-      return (count ?? 0) > 0;
+      const { data } = await supabase
+        .from("clippings")
+        .select("id, body, clipping_files(id, external_url, storage_path)")
+        .eq("board", board)
+        .eq("source_ref", source_ref)
+        .maybeSingle();
+      if (!data) return null;
+      return { id: data.id as string, body: (data.body as string) ?? "", files: data.clipping_files ?? [] };
     },
     insertItem,
+    repairExisting,
   });
   errors.push(...collectErrors);
 
@@ -193,7 +231,7 @@ export async function POST(req: Request) {
   // Fix 2: surface failures via HTTP status so the cron workflow's
   // `test "$code" = "200"` assertion fails when anything went wrong.
   return NextResponse.json(
-    { new: newItems.length, notified: notifiedCount, errors },
+    { new: newItems.length, repaired, notified: notifiedCount, errors },
     { status: errors.length > 0 ? 500 : 200 }
   );
 }
