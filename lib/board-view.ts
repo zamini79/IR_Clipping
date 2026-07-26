@@ -23,18 +23,32 @@ export interface BoardView {
   page: number;
 }
 
+/** The KST calendar day an instant falls on, e.g. "2026-07-26". */
+function kstDay(value: string | number): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(value));
+}
+
 export function buildBoardView(
   items: Clipping[],
-  opts: { query: string; page: number }
+  opts: { query: string; page: number; now?: number }
 ): BoardView {
   const q = opts.query.trim().toLowerCase();
   const total = items.length;
+  // NEW marks what today's collection brought in, so it reflects ingest time
+  // (createdAt), not the source's publication date — a post published days ago
+  // still counts as new to us on the day we first pick it up.
+  const today = kstDay(opts.now ?? Date.now());
 
   // Precompute No and NEW against the FULL list (index 0 = newest).
   const decorated = items.map((it, index) => ({
     it,
     no: padNo(total - index),
-    isNew: index < 2,
+    isNew: Boolean(it.createdAt) && kstDay(it.createdAt) === today,
   }));
 
   const filtered = decorated.filter(({ it }) => {

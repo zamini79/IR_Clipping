@@ -28,11 +28,37 @@ describe("buildBoardView", () => {
     expect(v.rows[5].no).toBe("03");
   });
 
-  it("marks the two newest items as NEW", () => {
-    const v = buildBoardView(make(8), { query: "", page: 0 });
-    expect(v.rows[0].isNew).toBe(true);
-    expect(v.rows[1].isNew).toBe(true);
-    expect(v.rows[2].isNew).toBe(false);
+  describe("NEW badge = collected today (KST)", () => {
+    // Fixtures are all createdAt 2026-07-21T00:00:00Z, which is 2026-07-21 09:00 KST.
+    const duringThatKstDay = Date.parse("2026-07-21T05:00:00.000Z"); // 14:00 KST
+    const nextKstDay = Date.parse("2026-07-21T16:00:00.000Z"); // 2026-07-22 01:00 KST
+
+    it("marks every item ingested today, however many there are", () => {
+      const v = buildBoardView(make(8), { query: "", page: 0, now: duringThatKstDay });
+      expect(v.rows.every((r) => r.isNew)).toBe(true);
+    });
+
+    it("marks nothing once the KST day has rolled over", () => {
+      const v = buildBoardView(make(8), { query: "", page: 0, now: nextKstDay });
+      expect(v.rows.some((r) => r.isNew)).toBe(false);
+    });
+
+    it("uses ingest time, not the source's publication date", () => {
+      const items = make(2);
+      items[0].collectedAt = "2020-01-01T00:00:00.000Z"; // published long ago…
+      items[0].createdAt = "2026-07-21T00:30:00.000Z"; // …but collected today
+      items[1].createdAt = "2026-07-19T00:00:00.000Z"; // collected two days ago
+      const v = buildBoardView(items, { query: "", page: 0, now: duringThatKstDay });
+      expect(v.rows[0].isNew).toBe(true);
+      expect(v.rows[1].isNew).toBe(false);
+    });
+
+    it("compares in KST, so a UTC-evening ingest still counts as that KST day", () => {
+      const items = make(1);
+      items[0].createdAt = "2026-07-25T16:30:00.000Z"; // 2026-07-26 01:30 KST
+      const v = buildBoardView(items, { query: "", page: 0, now: Date.parse("2026-07-26T03:00:00.000Z") });
+      expect(v.rows[0].isNew).toBe(true);
+    });
   });
 
   it("paginates to PER_PAGE items per page", () => {
@@ -61,7 +87,8 @@ describe("buildBoardView", () => {
   });
 
   it("keeps No/NEW based on full list even when filtered", () => {
-    const v = buildBoardView(make(8), { query: "금융감독원", page: 0 });
+    // now = the fixtures' ingest day (2026-07-21 KST), so NEW should survive filtering
+    const v = buildBoardView(make(8), { query: "금융감독원", page: 0, now: Date.parse("2026-07-21T05:00:00.000Z") });
     expect(v.total).toBe(1);
     expect(v.rows[0].no).toBe("08");
     expect(v.rows[0].isNew).toBe(true);
