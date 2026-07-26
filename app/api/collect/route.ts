@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
 import { runCollectors, type ExistingRow } from "@/lib/collect-run";
 import { itemToRow, dedupKey } from "@/lib/collectors/normalize";
@@ -71,6 +71,23 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+
+  // A full run takes well over a minute, but cron services cut the connection
+  // at ~30s and then retry — which would overlap runs. So acknowledge straight
+  // away and finish in the background. `?wait=1` keeps the old synchronous
+  // behaviour for manual runs, where the result is the point.
+  if (new URL(req.url).searchParams.get("wait") === "1") {
+    const { status, body } = await runPipeline(supabase);
+    return NextResponse.json(body, { status });
+  }
+  after(async () => {
+    const { status, body } = await runPipeline(supabase);
+    console[status === 200 ? "log" : "error"]("[collect]", JSON.stringify(body));
+  });
+  return NextResponse.json({ started: true }, { status: 202 });
+}
+
+async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
   const errors: string[] = [];
 
   async function insertItem(it: CollectedItem) {
@@ -228,10 +245,10 @@ export async function POST(req: Request) {
     }
   }
 
-  // Fix 2: surface failures via HTTP status so the cron workflow's
-  // `test "$code" = "200"` assertion fails when anything went wrong.
-  return NextResponse.json(
-    { new: newItems.length, repaired, notified: notifiedCount, errors },
-    { status: errors.length > 0 ? 500 : 200 }
-  );
+  // Non-200 marks the run as failed for `?wait=1` callers; the background path
+  // logs the same payload to the Vercel function log.
+  return {
+    status: errors.length > 0 ? 500 : 200,
+    body: { new: newItems.length, repaired, notified: notifiedCount, errors },
+  };
 }

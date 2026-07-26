@@ -12,7 +12,10 @@ jobs:
           # URL is a public endpoint (not sensitive); hardcoded so a missing
           # APP_COLLECT_URL secret can't leave curl with an empty URL (exit 3).
           # A secret, if set, overrides.
-          url="${APP_COLLECT_URL:-https://ir-clipping.vercel.app/api/collect}"
+          # wait=1 runs the pipeline synchronously and returns its result, so a
+          # failure shows up here. (The external cron calls the URL without it
+          # and gets an immediate 202 instead.)
+          url="${APP_COLLECT_URL:-https://ir-clipping.vercel.app/api/collect}?wait=1"
           code=$(curl -s -o /tmp/out.json -w "%{http_code}" --max-time 290 -X POST "$url" -H "x-cron-secret: $CRON_SECRET")
           echo "HTTP $code"; cat /tmp/out.json
           test "$code" = "200"

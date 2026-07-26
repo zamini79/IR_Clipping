@@ -10,7 +10,7 @@ jobs:
       - name: Trigger FnGuide collect endpoint
         run: |
           code=$(curl -s -o /tmp/out.json -w "%{http_code}" --max-time 290 -X POST \
-            "https://ir-clipping.vercel.app/api/collect-fnguide" -H "x-cron-secret: $CRON_SECRET")
+            "https://ir-clipping.vercel.app/api/collect-fnguide?wait=1" -H "x-cron-secret: $CRON_SECRET")
           echo "HTTP $code"; cat /tmp/out.json
           test "$code" = "200"
         env:

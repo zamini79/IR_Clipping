@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
 import { itemToRow } from "@/lib/collectors/normalize";
 import { storagePathFor, humanSize } from "@/lib/collectors/attachments";
@@ -30,20 +30,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
   }
 
+  // Same reasoning as /api/collect: cron services time out long before a run
+  // with PDF downloads finishes, so acknowledge now and work in the background.
+  // `?wait=1` runs it synchronously and returns the result.
+  if (new URL(req.url).searchParams.get("wait") === "1") {
+    const { status, body } = await runFnguide(supabase);
+    return NextResponse.json(body, { status });
+  }
+  after(async () => {
+    const { status, body } = await runFnguide(supabase);
+    console[status === 200 ? "log" : "error"]("[collect-fnguide]", JSON.stringify(body));
+  });
+  return NextResponse.json({ started: true }, { status: 202 });
+}
+
+async function runFnguide(supabase: ReturnType<typeof createServiceClient>) {
   const errors: string[] = [];
   let cookie: string | null;
   try {
     cookie = await fnguideLogin();
   } catch (e) {
-    return NextResponse.json({ error: `login: ${e instanceof Error ? e.message : String(e)}` }, { status: 500 });
+    return { status: 500, body: { error: `login: ${e instanceof Error ? e.message : String(e)}` } };
   }
-  if (!cookie) return NextResponse.json({ error: "FnGuide credentials not configured" }, { status: 500 });
+  if (!cookie) return { status: 500, body: { error: "FnGuide credentials not configured" } };
 
   let reports;
   try {
     reports = await searchAllKeywords(cookie);
   } catch (e) {
-    return NextResponse.json({ error: `search: ${e instanceof Error ? e.message : String(e)}` }, { status: 500 });
+    return { status: 500, body: { error: `search: ${e instanceof Error ? e.message : String(e)}` } };
   }
 
   let inserted = 0;
@@ -97,5 +112,8 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ new: inserted, checked: reports.length, errors }, { status: errors.length > 0 ? 500 : 200 });
+  return {
+    status: errors.length > 0 ? 500 : 200,
+    body: { new: inserted, checked: reports.length, errors },
+  };
 }
