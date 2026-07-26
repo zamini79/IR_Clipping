@@ -50,6 +50,26 @@ export function mapRowToClipping(row: ClippingRow): Clipping {
   };
 }
 
+/**
+ * When collection last ran (ISO), for the header's "최근 수집".
+ *
+ * Reads collect_runs rather than the newest clipping: the board should show
+ * that we checked the sources an hour ago even when nothing new turned up.
+ * Returns null before migration 0004 is applied, or if no run is recorded yet —
+ * the caller falls back to the newest post.
+ */
+export async function getLastRunAt(): Promise<string | null> {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase
+    .from("collect_runs")
+    .select("ran_at")
+    .order("ran_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  return (data.ran_at as string) ?? null;
+}
+
 export async function getBoardData(): Promise<Record<Category, Clipping[]>> {
   const supabase = createPublicClient();
   const { data, error } = await supabase

@@ -112,6 +112,14 @@ async function runFnguide(supabase: ReturnType<typeof createServiceClient>) {
     }
   }
 
+  // Display metadata for the board header (see /api/collect); optional table.
+  const { error: runErr } = await supabase.from("collect_runs").insert({
+    source: "collect-fnguide",
+    new_count: inserted,
+    error_count: errors.length,
+  });
+  if (runErr) console.error("[collect-fnguide] collect_runs insert:", runErr.message);
+
   return {
     status: errors.length > 0 ? 500 : 200,
     body: { new: inserted, checked: reports.length, errors },

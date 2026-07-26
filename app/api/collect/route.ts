@@ -245,6 +245,17 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
     }
   }
 
+  // Record the run so the board's "최근 수집" reflects when we last checked the
+  // sources, not just when a new post happened to arrive. Never fails the run:
+  // the table is optional (migration 0004) and this is only display metadata.
+  const { error: runErr } = await supabase.from("collect_runs").insert({
+    source: "collect",
+    new_count: newItems.length,
+    repaired_count: repaired,
+    error_count: errors.length,
+  });
+  if (runErr) console.error("[collect] collect_runs insert:", runErr.message);
+
   // Non-200 marks the run as failed for `?wait=1` callers; the background path
   // logs the same payload to the Vercel function log.
   return {
