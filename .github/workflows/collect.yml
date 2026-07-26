@@ -1,7 +1,9 @@
 name: collect
 on:
-  schedule:
-    - cron: "0 * * * *"   # 매시간
+  # Scheduling moved to cron-job.org (hourly, on the minute). GitHub's scheduler
+  # skipped hours at a time — 09:02 → 13:28 on 2026-07-26 — which delayed
+  # collection by that much. This workflow stays for manual runs, where ?wait=1
+  # reports the pipeline's actual result.
   workflow_dispatch: {}
 jobs:
   collect:

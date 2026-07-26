@@ -1,7 +1,8 @@
 name: collect-fnguide
 on:
-  schedule:
-    - cron: "0 19 * * *" # daily 19:00 UTC = 04:00 KST (night; FnGuide login force-logs-out the user's session)
+  # Scheduling moved to cron-job.org (daily 04:00 KST — FnGuide login
+  # force-logs-out the user's own session, so it runs at night). Kept here for
+  # manual runs.
   workflow_dispatch: {}
 jobs:
   collect-fnguide:
