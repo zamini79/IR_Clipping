@@ -228,7 +228,15 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
     const { data: recips } = await supabase.from("alert_recipients").select("email").eq("active", true);
     const emails = (recips ?? []).map((r: { email: string }) => r.email);
     try {
-      await sendDigest(emails, buildDigest(backlogItems, SITE_URL));
+      const sent = await sendDigest(emails, buildDigest(backlogItems, SITE_URL));
+      // Record who the mail server actually took, so a recipient silently
+      // dropping off is visible in the logs rather than only in complaints.
+      if (sent) {
+        console.log(
+          `[collect] digest accepted=${sent.accepted.join(",") || "-"} rejected=${sent.rejected.join(",") || "-"} id=${sent.messageId}`
+        );
+        if (sent.rejected.length) errors.push(`email rejected: ${sent.rejected.join(", ")}`);
+      }
       const ids = (backlog as BacklogRow[]).map((r) => r.id);
       const { error: markErr } = await supabase
         .from("clippings")
