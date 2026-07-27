@@ -233,9 +233,14 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
       // dropping off is visible in the logs rather than only in complaints.
       if (sent) {
         console.log(
-          `[collect] digest accepted=${sent.accepted.join(",") || "-"} rejected=${sent.rejected.join(",") || "-"} id=${sent.messageId}`
+          `[collect] digest accepted=${sent.accepted.join(",") || "-"} rejected=${sent.rejected.join(",") || "-"} failed=${sent.failed.map((f) => f.email).join(",") || "-"}`
         );
         if (sent.rejected.length) errors.push(`email rejected: ${sent.rejected.join(", ")}`);
+        for (const f of sent.failed) errors.push(`email ${f.email}: ${f.error}`);
+        // Nobody was reached — leave notified_at unset so the next run retries.
+        // A partial success still stamps, otherwise the recipients who did get
+        // it would receive the same digest again.
+        if (sent.accepted.length === 0) throw new Error("digest reached no recipient");
       }
       const ids = (backlog as BacklogRow[]).map((r) => r.id);
       const { error: markErr } = await supabase
