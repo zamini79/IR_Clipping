@@ -15,6 +15,7 @@ import { fssBodoCollector } from "@/lib/collectors/fss-bodo";
 import { fssGuideCollector } from "@/lib/collectors/fss-guide";
 import { fssGuide02Collector } from "@/lib/collectors/fss-guide02";
 import { kclicCollector } from "@/lib/collectors/kclic";
+import { molegCollector } from "@/lib/collectors/moleg";
 import type { CollectedItem } from "@/lib/collectors/types";
 
 export const runtime = "nodejs";
@@ -32,6 +33,7 @@ const COLLECTORS = [
   fssGuideCollector,
   fssGuide02Collector,
   kclicCollector,
+  molegCollector,
 ];
 
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50MB

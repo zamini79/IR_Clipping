@@ -21,6 +21,10 @@ export function isLoginRequiredBoard(board: string): boolean {
   return LOGIN_REQUIRED_BOARDS.has(board);
 }
 
+// 법제처 입법예고도 전수가 아니라 키워드 검색으로 수집한다. FNGUIDE_KEYWORDS와
+// 같은 이유로 client-safe한 이 파일에 둔다(수집 사이트 리스트 UI가 함께 표시).
+export const MOLEG_KEYWORDS = ["상법", "자본시장"];
+
 export interface CrawlSource {
   org: string; // 기관/출처
   board: string; // 게시판/코너 이름
@@ -50,6 +54,12 @@ export const CRAWL_SOURCES: CrawlSourceGroup[] = [
       { org: "상장회사협의회", board: "보도자료", url: "https://www.klca.or.kr/sub/comm/news_release.asp" },
       { org: "상장회사협의회", board: "법령정보", url: "https://www.klca.or.kr/sub/law/legal_information.asp" },
       { org: "한국거래소(KCLIC)", board: "공지사항", url: "https://kclic.krx.co.kr/sprtroom/notice.do" },
+      {
+        org: "법제처",
+        board: "입법예고",
+        url: "https://moleg.go.kr/lawinfo/makingList.mo?mid=a10104010000",
+        keywords: MOLEG_KEYWORDS,
+      },
     ],
   },
   {
