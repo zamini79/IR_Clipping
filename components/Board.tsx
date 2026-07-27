@@ -71,7 +71,7 @@ export function Board({
         </div>
 
         {/* table */}
-        <BoardTable rows={view.rows} onOpen={(id) => setDetailId(id)} showKeyword={activeKey === "fnguide"} />
+        <BoardTable rows={view.rows} onOpen={(id) => setDetailId(id)} />
 
         {/* pagination */}
         <Pagination page={view.page} pageCount={view.pageCount} onGo={(p) => setPage(p)} />
