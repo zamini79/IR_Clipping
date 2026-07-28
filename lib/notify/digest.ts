@@ -1,9 +1,11 @@
 import { formatDate } from "../format";
+import { boardLabel } from "../sources";
 
 /** A newly collected post, as rendered in the digest email. */
 export interface DigestItem {
   id: string;
-  source: string;
+  source: string; // 기관(대분류)
+  board: string; // 수집기 id — 게시판(하위 분류) 컬럼으로 풀어 표시
   keyword: string; // FnGuide only; "" for disclosure posts
   title: string;
   collectedAt: string; // ISO
@@ -36,7 +38,8 @@ const TH = `padding:10px;border-bottom:1px solid #1a2338;font-family:${SANS};fon
 
 /**
  * Builds the "new posts" digest: one table with
- * No · 출처 · 키워드 · 제목 · 등록일 · 링크, each row linking back to the board.
+ * No · 출처 · 게시판 · 키워드 · 제목 · 등록일 · 링크, each row linking back to
+ * the board — same columns, in the same order, as the list on the site.
  *
  * Table-based markup with inline styles — email clients strip <style> blocks
  * and most modern CSS.
@@ -55,6 +58,7 @@ export function buildDigest(
       return `<tr>
 <td style="${TD};font-family:${MONO};text-align:center;color:#b3b7c0">${i + 1}</td>
 <td style="${TD};text-align:center;color:#9a7b46;white-space:nowrap">${esc(it.source)}</td>
+<td style="${TD};text-align:center;color:#6a7180;white-space:nowrap">${esc(boardLabel(it.board)) || "—"}</td>
 <td style="${TD};text-align:center;color:#8a6d3a">${esc(it.keyword) || "—"}</td>
 <td style="${TD};color:#20242c">${esc(it.title)}</td>
 <td style="${TD};font-family:${MONO};text-align:center;color:#6a7180;white-space:nowrap">${formatDate(it.collectedAt)}</td>
@@ -68,7 +72,7 @@ export function buildDigest(
 <h2 style="font-family:${SERIF};font-size:19px;font-weight:600;margin:0 0 14px;color:#1a2338">공시 · 규제 정보 클리핑 신규 ${rows.length}건</h2>
 <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;max-width:900px;background:#fbfaf6">
 <thead><tr style="background:#f4f1e8">
-<th style="${TH}">No</th><th style="${TH}">출처</th><th style="${TH}">키워드</th>
+<th style="${TH}">No</th><th style="${TH}">출처</th><th style="${TH}">게시판</th><th style="${TH}">키워드</th>
 <th style="${TH};text-align:left">제목</th><th style="${TH}">등록일</th><th style="${TH}">링크</th>
 </tr></thead>
 <tbody>${body}</tbody>
@@ -81,10 +85,10 @@ export function buildDigest(
   const text = [
     subject,
     "",
-    ...rows.map(
-      (it, i) =>
-        `${i + 1}. [${it.source}]${it.keyword ? ` (${it.keyword})` : ""} ${it.title} — ${formatDate(it.collectedAt)}\n   ${postUrl(siteUrl, it.id)}`
-    ),
+    ...rows.map((it, i) => {
+      const board = boardLabel(it.board);
+      return `${i + 1}. [${it.source}${board ? ` · ${board}` : ""}]${it.keyword ? ` (${it.keyword})` : ""} ${it.title} — ${formatDate(it.collectedAt)}\n   ${postUrl(siteUrl, it.id)}`;
+    }),
   ].join("\n");
 
   return { subject, html, text };

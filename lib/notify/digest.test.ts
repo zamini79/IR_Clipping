@@ -3,15 +3,17 @@ import { buildDigest, postUrl, type DigestItem } from "./digest";
 
 const SITE = "https://ir-clipping.vercel.app";
 
-function item(id: string, source: string, title: string, collectedAt: string, keyword = ""): DigestItem {
-  return { id, source, keyword, title, collectedAt };
+function item(
+  id: string, source: string, title: string, collectedAt: string, keyword = "", board = "fsc-bodo"
+): DigestItem {
+  return { id, source, board, keyword, title, collectedAt };
 }
 
 describe("buildDigest", () => {
   const items = [
-    item("id-a", "금융위원회", "A 규정 개정", "2026-07-21T15:00:00.000Z"),
-    item("id-b", "공정거래위원회", "B 지침", "2026-07-23T15:00:00.000Z"),
-    item("id-c", "삼성증권", "C 리포트", "2026-07-22T15:00:00.000Z", "MSCI"),
+    item("id-a", "금융위원회", "A 규정 개정", "2026-07-21T15:00:00.000Z", "", "fsc-reg"),
+    item("id-b", "공정거래위원회", "B 지침", "2026-07-23T15:00:00.000Z", "", "ftc-bodo"),
+    item("id-c", "삼성증권", "C 리포트", "2026-07-22T15:00:00.000Z", "MSCI", "fnguide"),
   ];
 
   it("subject includes the total new count", () => {
@@ -20,7 +22,7 @@ describe("buildDigest", () => {
 
   it("renders one table row per post with every column", () => {
     const { html } = buildDigest(items, SITE);
-    for (const h of ["No", "출처", "키워드", "제목", "등록일", "링크"]) expect(html).toContain(h);
+    for (const h of ["No", "출처", "게시판", "키워드", "제목", "등록일", "링크"]) expect(html).toContain(h);
     expect(html.match(/<tr>/g)?.length).toBe(items.length); // header row uses its own markup
     for (const s of ["A 규정 개정", "B 지침", "C 리포트", "금융위원회", "공정거래위원회"]) {
       expect(html).toContain(s);
@@ -33,6 +35,20 @@ describe("buildDigest", () => {
       expect(html).toContain(`${SITE}/?id=${it.id}`);
       expect(text).toContain(`${SITE}/?id=${it.id}`);
     }
+  });
+
+  it("resolves each post's board into the 게시판 column", () => {
+    const { html, text } = buildDigest(items, SITE);
+    // 출처만으로는 같은 기관의 게시판이 구분되지 않으므로 하위 분류를 함께 싣는다.
+    for (const label of ["소관규정 · 고시", "보도자료", "리서치 리포트"]) {
+      expect(html).toContain(label);
+    }
+    expect(text).toContain("[공정거래위원회 · 보도자료]");
+  });
+
+  it("falls back to a dash when the board has no registry entry", () => {
+    const { html } = buildDigest([item("id-u", "s", "t", "2026-07-23T00:00:00.000Z", "", "gone")], SITE);
+    expect(html).toContain("—");
   });
 
   it("shows the FnGuide keyword and a dash for disclosure posts", () => {

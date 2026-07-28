@@ -39,7 +39,9 @@ export function Board({
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", padding: "40px 20px", background: "#eceae3" }}>
-      <div style={{ width: 1040, maxWidth: "100%", background: "#fbfaf6", borderRadius: 12, boxShadow: "0 24px 60px -24px rgba(20,26,45,.35),0 2px 8px rgba(0,0,0,.06)", overflow: "hidden" }}>
+      {/* 1040 → 1196 (+15%): every added pixel lands in the title column, which
+          is the grid's only 1fr track (see BoardTable). */}
+      <div style={{ width: 1196, maxWidth: "100%", background: "#fbfaf6", borderRadius: 12, boxShadow: "0 24px 60px -24px rgba(20,26,45,.35),0 2px 8px rgba(0,0,0,.06)", overflow: "hidden" }}>
         {/* header */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "28px 36px 0" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

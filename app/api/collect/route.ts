@@ -48,6 +48,7 @@ const SINCE_DAYS = Number(process.env.COLLECT_SINCE_DAYS ?? "7");
 interface BacklogRow {
   id: string;
   source: string;
+  board: string;
   keyword: string | null;
   title: string;
   collected_at: string;
@@ -212,7 +213,7 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
   let notifiedCount = 0;
   const { data: backlog, error: backlogErr } = await supabase
     .from("clippings")
-    .select("id, source, keyword, title, collected_at")
+    .select("id, source, board, keyword, title, collected_at")
     .is("notified_at", null)
     .order("collected_at", { ascending: true })
     .limit(200);
@@ -223,6 +224,7 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
     const backlogItems = (backlog as BacklogRow[]).map((r) => ({
       id: r.id,
       source: r.source,
+      board: r.board,
       keyword: r.keyword ?? "",
       title: r.title,
       collectedAt: r.collected_at,
