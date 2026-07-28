@@ -176,17 +176,33 @@ npm run dev                  # http://localhost:3000
 
 ## Phase 2 운영 (수집기 · 알림 · 스케줄)
 
-Phase 2부터는 7개 게시판(금융감독원 보도자료/규정예고, 금융위 보도자료, 공정위 보도자료,
-코스콤 공시업무해설/법규, 금융감독원 가이드라인)을 매시간 자동 수집해 `clippings`/`clipping_files`
-테이블에 적재하고, 신규 항목이 있으면 담당자에게 다이제스트 메일을 보냅니다.
+Phase 2부터는 12개 게시판(금융위 보도자료/소관규정, 공정위 보도자료, DART 보도자료/안내·해설/
+공시유의사항, 상장회사협의회 공문/보도자료/법령정보, KCLIC 공지사항, 법제처 입법예고, FnGuide
+리서치)을 자동 수집해 `clippings`/`clipping_files` 테이블에 적재하고, 신규 항목을 모아 담당자에게
+다이제스트 메일을 보냅니다.
 
-**수집 주기**: GitHub Actions `.github/workflows/collect.yml` — `cron: "0 * * * *"`(매시간 정각) +
-`workflow_dispatch`(수동 실행 가능). 워크플로는 `POST $APP_COLLECT_URL`을
-`x-cron-secret: $CRON_SECRET` 헤더와 함께 호출하고 HTTP 200이 아니면 실패 처리합니다.
+**수집 주기**: cron-job.org에서 두 엔드포인트를 호출합니다(GitHub Actions 스케줄러는 시간 단위로
+건너뛰는 일이 잦아 이관 — 워크플로는 `workflow_dispatch` 수동 실행용으로만 남아 있음).
+- `POST /api/collect` — 매시 정각. 11개 공시·규제 게시판.
+- `POST /api/collect-fnguide` — 매일 04:00 KST. FnGuide 로그인이 사용자의 기존 세션을 끊기 때문에 야간 1회.
+
+두 엔드포인트 모두 `x-cron-secret: $CRON_SECRET` 헤더가 필요하며, 외부 크론은 ~30초에 연결을
+끊으므로 즉시 202를 반환하고 `after()`로 백그라운드 실행합니다. `?wait=1`을 붙이면 동기 실행 후
+실제 결과를 반환합니다.
+
+**메일 발송 창**: 수집은 매시간이지만 다이제스트는 **월~금 09/12/15/18시(KST), 하루 4회**만
+나갑니다(`lib/notify/schedule.ts`). 창 밖에서 수집된 글은 `notified_at`이 NULL로 남아 다음 창에
+묶여 발송되고(주말 수집분은 월요일 09시), 응답 body의 `pending`이 대기 건수를 알려줍니다.
+발송 주기를 바꾸려면 `DIGEST_HOURS_KST`만 고치면 됩니다 — 크론 설정은 그대로 둡니다.
 
 **수동 트리거** (로컬/운영 확인용):
 ```bash
-curl -X POST "https://<your-app>.vercel.app/api/collect" \
+# 수집만 (발송 창 밖이면 메일은 나가지 않음)
+curl -X POST "https://<your-app>.vercel.app/api/collect?wait=1" \
+  -H "x-cron-secret: $CRON_SECRET"
+
+# 발송 창과 무관하게 대기 중인 신규 건을 즉시 메일 발송 (테스트용)
+curl -X POST "https://<your-app>.vercel.app/api/collect?wait=1&notify=1" \
   -H "x-cron-secret: $CRON_SECRET"
 ```
 

@@ -5,6 +5,7 @@ import { itemToRow, dedupKey } from "@/lib/collectors/normalize";
 import { uploadAttachment } from "@/lib/collectors/attachments";
 import { buildDigest } from "@/lib/notify/digest";
 import { sendDigest } from "@/lib/notify/mailer";
+import { isDigestWindow, describeKst } from "@/lib/notify/schedule";
 import { fscBodoCollector } from "@/lib/collectors/fsc-bodo";
 import { fscRegCollector } from "@/lib/collectors/fsc-reg";
 import { ftcBodoCollector } from "@/lib/collectors/ftc-bodo";
@@ -79,18 +80,23 @@ export async function POST(req: Request) {
   // at ~30s and then retry — which would overlap runs. So acknowledge straight
   // away and finish in the background. `?wait=1` keeps the old synchronous
   // behaviour for manual runs, where the result is the point.
-  if (new URL(req.url).searchParams.get("wait") === "1") {
-    const { status, body } = await runPipeline(supabase);
+  // Collection runs hourly; the digest only goes out in its own window (Mon–Fri
+  // 09/12/15/18 KST). `?notify=1` forces a send outside it — for test mails.
+  const params = new URL(req.url).searchParams;
+  const notify = params.get("notify") === "1" || isDigestWindow();
+
+  if (params.get("wait") === "1") {
+    const { status, body } = await runPipeline(supabase, notify);
     return NextResponse.json(body, { status });
   }
   after(async () => {
-    const { status, body } = await runPipeline(supabase);
+    const { status, body } = await runPipeline(supabase, notify);
     console[status === 200 ? "log" : "error"]("[collect]", JSON.stringify(body));
   });
   return NextResponse.json({ started: true }, { status: 202 });
 }
 
-async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
+async function runPipeline(supabase: ReturnType<typeof createServiceClient>, notify: boolean) {
   const errors: string[] = [];
 
   async function insertItem(it: CollectedItem) {
@@ -210,6 +216,8 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
   // Fix 1: notify from the backlog of un-notified rows in the DB (not just
   // this run's newItems), so a transient email failure never permanently
   // drops items — they simply stay notified_at IS NULL and retry next run.
+  // The same backlog is what batches the digest into its 4 daily windows: runs
+  // outside a window skip the send, and the next window mails everything since.
   let notifiedCount = 0;
   const { data: backlog, error: backlogErr } = await supabase
     .from("clippings")
@@ -218,8 +226,14 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
     .order("collected_at", { ascending: true })
     .limit(200);
 
+  const pending = backlog?.length ?? 0;
+
   if (backlogErr) {
     errors.push(`backlog query: ${backlogErr.message}`);
+  } else if (pending > 0 && !notify) {
+    // Outside the send window: leave notified_at NULL so these roll into the
+    // next digest (Mon–Fri 09/12/15/18 KST) instead of mailing on every run.
+    console.log(`[collect] digest window closed (${describeKst()}) — ${pending}건 대기`);
   } else if (backlog && backlog.length > 0) {
     const backlogItems = (backlog as BacklogRow[]).map((r) => ({
       id: r.id,
@@ -277,6 +291,13 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>) {
   // logs the same payload to the Vercel function log.
   return {
     status: errors.length > 0 ? 500 : 200,
-    body: { new: newItems.length, repaired, notified: notifiedCount, errors },
+    body: {
+      new: newItems.length,
+      repaired,
+      notified: notifiedCount,
+      // 발송 창 밖이라 다음 창으로 미뤄진 건수 (0이면 밀린 것 없음)
+      pending: notify ? 0 : pending,
+      errors,
+    },
   };
 }
