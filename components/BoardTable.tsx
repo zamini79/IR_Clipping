@@ -3,7 +3,8 @@ import type { BoardRow } from "@/lib/board-view";
 
 // Both tabs carry keywords now: FnGuide reports and 법제처 입법예고 are collected
 // by keyword search, the rest show "—".
-const GRID = "52px 120px 132px 1fr 130px 96px 68px";
+// 출처는 기관(대분류)만, 게시판은 그 아래 하위 분류(보도자료/공문/입법예고…).
+const GRID = "44px 104px 112px 116px 1fr 108px 92px 60px";
 const th = { padding: "11px 0", font: "600 10.5px/1 'Pretendard'", letterSpacing: ".06em", color: "#8a8f99", textAlign: "center" } as const;
 
 export function BoardTable({ rows, onOpen }: { rows: BoardRow[]; onOpen: (id: string) => void }) {
@@ -12,6 +13,7 @@ export function BoardTable({ rows, onOpen }: { rows: BoardRow[]; onOpen: (id: st
       <div style={{ display: "grid", gridTemplateColumns: GRID, padding: "0 36px", borderTop: "1px solid #1a2338", borderBottom: "1px solid #e6e2d7" }}>
         <span style={th}>No</span>
         <span style={th}>출처</span>
+        <span style={th}>게시판</span>
         <span style={th}>키워드</span>
         <span style={th}>제목</span>
         <span style={th}>담당부서</span>
@@ -25,6 +27,9 @@ export function BoardTable({ rows, onOpen }: { rows: BoardRow[]; onOpen: (id: st
           onMouseLeave={(e) => (e.currentTarget.style.background = "#fbfaf6")}>
           <div style={{ font: "500 12px 'IBM Plex Mono'", color: "#b3b7c0", textAlign: "center" }}>{r.no}</div>
           <div style={{ font: "500 12px 'Pretendard'", color: "#9a7b46", textAlign: "center", padding: "0 8px", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.source}</div>
+          <div style={{ font: "500 12px 'Pretendard'", color: "#6a7180", textAlign: "center", padding: "0 8px", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.boardLabel}>
+            {r.boardLabel || <span style={{ color: "#cfd2d8" }}>—</span>}
+          </div>
           <div style={{ padding: "0 8px", minWidth: 0, textAlign: "center" }}>
             {r.keyword
               ? <span style={{ display: "inline-block", maxWidth: "100%", padding: "3px 8px", borderRadius: 4, background: "#f0ece0", font: "600 10.5px/1.3 'Pretendard'", color: "#8a6d3a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.keyword}>{r.keyword}</span>

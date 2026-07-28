@@ -26,8 +26,10 @@ export function isLoginRequiredBoard(board: string): boolean {
 export const MOLEG_KEYWORDS = ["상법", "자본시장"];
 
 export interface CrawlSource {
+  id: string; // 수집기 id — clippings.board 컬럼에 저장되는 값
   org: string; // 기관/출처
   board: string; // 게시판/코너 이름
+  short?: string; // 목록 표에 쓰는 짧은 이름(생략하면 board 그대로)
   url: string; // 사람이 볼 수 있는 원문 목록 페이지
   note?: string; // 수집 방식 등 부가 설명
   keywords?: string[]; // 키워드 기반 수집원(FnGuide)의 검색 키워드 목록
@@ -44,17 +46,18 @@ export const CRAWL_SOURCES: CrawlSourceGroup[] = [
     category: "disclosure",
     label: "공시법규 규정",
     sources: [
-      { org: "금융위원회", board: "보도자료", url: "https://www.fsc.go.kr/no010101" },
-      { org: "금융위원회", board: "소관규정 · 고시 · 공고 · 훈령", url: "https://www.fsc.go.kr/po040200" },
-      { org: "공정거래위원회", board: "보도자료", url: "https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12" },
-      { org: "금융감독원(DART)", board: "보도자료", url: "https://dart.fss.or.kr/info/searchBodo.do" },
-      { org: "금융감독원(DART)", board: "안내 · 해설", url: "https://dart.fss.or.kr/info/searchGuide.do" },
-      { org: "금융감독원(DART)", board: "공시유의사항", url: "https://dart.fss.or.kr/info/searchGuide02.do" },
-      { org: "상장회사협의회", board: "공문", url: "https://www.klca.or.kr/sub/comm/official_document.asp" },
-      { org: "상장회사협의회", board: "보도자료", url: "https://www.klca.or.kr/sub/comm/news_release.asp" },
-      { org: "상장회사협의회", board: "법령정보", url: "https://www.klca.or.kr/sub/law/legal_information.asp" },
-      { org: "한국거래소(KCLIC)", board: "공지사항", url: "https://kclic.krx.co.kr/sprtroom/notice.do" },
+      { id: "fsc-bodo", org: "금융위원회", board: "보도자료", url: "https://www.fsc.go.kr/no010101" },
+      { id: "fsc-reg", org: "금융위원회", board: "소관규정 · 고시 · 공고 · 훈령", short: "소관규정 · 고시", url: "https://www.fsc.go.kr/po040200" },
+      { id: "ftc-bodo", org: "공정거래위원회", board: "보도자료", url: "https://www.ftc.go.kr/www/selectBbsNttList.do?bordCd=3&key=12" },
+      { id: "fss-bodo", org: "금융감독원(DART)", board: "보도자료", url: "https://dart.fss.or.kr/info/searchBodo.do" },
+      { id: "fss-guide", org: "금융감독원(DART)", board: "안내 · 해설", url: "https://dart.fss.or.kr/info/searchGuide.do" },
+      { id: "fss-guide02", org: "금융감독원(DART)", board: "공시유의사항", url: "https://dart.fss.or.kr/info/searchGuide02.do" },
+      { id: "klca-doc", org: "상장회사협의회", board: "공문", url: "https://www.klca.or.kr/sub/comm/official_document.asp" },
+      { id: "klca-news", org: "상장회사협의회", board: "보도자료", url: "https://www.klca.or.kr/sub/comm/news_release.asp" },
+      { id: "klca-law", org: "상장회사협의회", board: "법령정보", url: "https://www.klca.or.kr/sub/law/legal_information.asp" },
+      { id: "kclic", org: "한국거래소(KCLIC)", board: "공지사항", url: "https://kclic.krx.co.kr/sprtroom/notice.do" },
       {
+        id: "moleg",
         org: "법제처",
         board: "입법예고",
         url: "https://moleg.go.kr/lawinfo/makingList.mo?mid=a10104010000",
@@ -66,7 +69,28 @@ export const CRAWL_SOURCES: CrawlSourceGroup[] = [
     category: "fnguide",
     label: "FnGuide",
     sources: [
-      { org: "FnGuide", board: "리서치 리포트 검색", url: "https://www.fnguide.com/Research/SearchReport", keywords: FNGUIDE_KEYWORDS },
+      { id: "fnguide", org: "FnGuide", board: "리서치 리포트 검색", short: "리서치 리포트", url: "https://www.fnguide.com/Research/SearchReport", keywords: FNGUIDE_KEYWORDS },
     ],
   },
 ];
+
+/**
+ * 수집기 id(= clippings.board) → 게시판(하위 분류) 이름.
+ *
+ * 목록의 "출처"는 기관(대분류)만 보여주므로, 같은 기관의 여러 게시판이 구분되지
+ * 않는다. 이 표를 통해 행마다 어느 게시판에서 온 글인지 함께 표시한다.
+ * CRAWL_SOURCES가 유일한 정의처 — 수집원을 추가하면 여기도 자동 반영된다.
+ */
+const BOARD_LABELS: Record<string, { full: string; short: string }> = Object.fromEntries(
+  CRAWL_SOURCES.flatMap((g) => g.sources).map((s) => [s.id, { full: s.board, short: s.short ?? s.board }])
+);
+
+/** 목록 표에 쓰는 짧은 게시판 이름. 모르는 board면 "". */
+export function boardLabel(board: string): string {
+  return BOARD_LABELS[board]?.short ?? "";
+}
+
+/** 상세 모달 등에 쓰는 게시판 정식 이름. 모르는 board면 "". */
+export function boardFullLabel(board: string): string {
+  return BOARD_LABELS[board]?.full ?? "";
+}

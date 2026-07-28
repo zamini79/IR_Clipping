@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import type { Clipping } from "@/lib/types";
 import { formatDate } from "@/lib/format";
-import { isLoginRequiredBoard } from "@/lib/sources";
+import { isLoginRequiredBoard, boardFullLabel } from "@/lib/sources";
 
 export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clipping; activeLabel: string; onClose: () => void }) {
   useEffect(() => {
@@ -10,6 +10,8 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  const board = boardFullLabel(clipping.board);
 
   return (
     <div onClick={onClose}
@@ -19,6 +21,10 @@ export function DetailModal({ clipping, activeLabel, onClose }: { clipping: Clip
         <div style={{ padding: "26px 32px", borderBottom: "1px solid #e6e2d7", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, font: "600 11px 'Pretendard'", color: "#9a7b46" }}>
             {clipping.source}<span style={{ color: "#cfc9bd" }}>·</span>
+            {board && (<>
+              <span style={{ color: "#6a7180", fontWeight: 600 }}>{board}</span>
+              <span style={{ color: "#cfc9bd" }}>·</span>
+            </>)}
             <span style={{ color: "#8a8f99", fontWeight: 500 }}>{activeLabel}</span>
           </div>
           <div style={{ marginTop: 9, font: "600 20px/1.4 'Noto Serif KR',serif", color: "#1a2338", letterSpacing: "-.01em", textWrap: "pretty" }}>{clipping.title}</div>

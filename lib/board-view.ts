@@ -1,5 +1,6 @@
 import type { Clipping } from "./types";
 import { formatDate, padNo, attachmentLabel } from "./format";
+import { boardLabel } from "./sources";
 
 export const PER_PAGE = 10;
 
@@ -8,7 +9,8 @@ export interface BoardRow {
   no: string;
   keyword: string;
   title: string;
-  source: string;
+  source: string; // 기관(대분류)
+  boardLabel: string; // 게시판(하위 분류)
   department: string;
   date: string;
   attachmentLabel: string;
@@ -57,6 +59,7 @@ export function buildBoardView(
       it.title.toLowerCase().includes(q) ||
       it.department.toLowerCase().includes(q) ||
       (it.source ?? "").toLowerCase().includes(q) ||
+      boardLabel(it.board).toLowerCase().includes(q) ||
       (it.keyword ?? "").toLowerCase().includes(q)
     );
   });
@@ -73,6 +76,7 @@ export function buildBoardView(
     keyword: it.keyword ?? "",
     title: it.title,
     source: it.source,
+    boardLabel: boardLabel(it.board),
     department: it.department,
     date: formatDate(it.collectedAt),
     attachmentLabel: attachmentLabel(it.files.length),

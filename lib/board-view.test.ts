@@ -94,6 +94,39 @@ describe("buildBoardView", () => {
     expect(v.rows[0].isNew).toBe(true);
   });
 
+  describe("게시판(하위 분류) 컬럼", () => {
+    it("resolves the collector id to its board name", () => {
+      const items = make(2);
+      items[0].board = "fsc-bodo";
+      items[1].board = "moleg";
+      const v = buildBoardView(items, { query: "", page: 0 });
+      expect(v.rows[0].boardLabel).toBe("보도자료");
+      expect(v.rows[1].boardLabel).toBe("입법예고");
+    });
+
+    it("shortens board names too long for the column", () => {
+      const items = make(1);
+      items[0].board = "fsc-reg";
+      const v = buildBoardView(items, { query: "", page: 0 });
+      expect(v.rows[0].boardLabel).toBe("소관규정 · 고시");
+    });
+
+    it("falls back to empty for an unknown board", () => {
+      const v = buildBoardView(make(1), { query: "", page: 0 }); // board: "seed"
+      expect(v.rows[0].boardLabel).toBe("");
+    });
+
+    it("filters on the board name", () => {
+      const items = make(3);
+      items[0].board = "klca-doc";
+      items[1].board = "moleg";
+      items[2].board = "moleg";
+      const v = buildBoardView(items, { query: "입법예고", page: 0 });
+      expect(v.total).toBe(2);
+      expect(v.rows.every((r) => r.boardLabel === "입법예고")).toBe(true);
+    });
+  });
+
   it("sets attachment label and hasAttachment", () => {
     const v = buildBoardView(make(2), { query: "", page: 0 });
     expect(v.rows[0].attachmentLabel).toBe("📎 1");
