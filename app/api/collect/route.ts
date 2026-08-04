@@ -4,8 +4,9 @@ import { runCollectors, type ExistingRow } from "@/lib/collect-run";
 import { itemToRow, dedupKey } from "@/lib/collectors/normalize";
 import { uploadAttachment } from "@/lib/collectors/attachments";
 import { buildDigest } from "@/lib/notify/digest";
-import { sendDigest } from "@/lib/notify/mailer";
-import { isDigestWindow, describeKst } from "@/lib/notify/schedule";
+import { sendDigest, sendOpsAlert } from "@/lib/notify/mailer";
+import { isDigestWindow, describeKst, nextDigestWindow } from "@/lib/notify/schedule";
+import { formatDateTimeKst } from "@/lib/format";
 import { fscBodoCollector } from "@/lib/collectors/fsc-bodo";
 import { fscRegCollector } from "@/lib/collectors/fsc-reg";
 import { ftcBodoCollector } from "@/lib/collectors/ftc-bodo";
@@ -58,6 +59,26 @@ interface BacklogRow {
 // Where the digest's per-post links point. Overridable so preview deployments
 // can link to themselves.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ir-clipping.vercel.app";
+
+/**
+ * Tells the operator a digest didn't reach someone.
+ *
+ * Delivery failures are invisible from an inbox — the people who got the mail
+ * see nothing wrong, and whoever didn't get it has nothing to notice. Goes to
+ * OPS_ALERT_EMAIL, which is deliberately not the digest recipient list.
+ * Never throws: an alert must not be able to fail the collection run.
+ */
+async function alertOps(what: string, lines: string[]): Promise<void> {
+  console.error(`[collect] ops alert: ${what}`);
+  const ok = await sendOpsAlert(`[IR 클리핑] ${what}`, [
+    `${what} — ${formatDateTimeKst(new Date().toISOString())}`,
+    "",
+    ...lines,
+    "",
+    SITE_URL,
+  ]);
+  if (!ok) console.error("[collect] ops alert could not be delivered");
+}
 
 export async function POST(req: Request) {
   if (req.headers.get("x-cron-secret") !== process.env.CRON_SECRET) {
@@ -245,6 +266,14 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>, not
     }));
     const { data: recips } = await supabase.from("alert_recipients").select("email").eq("active", true);
     const emails = (recips ?? []).map((r: { email: string }) => r.email);
+    // No active recipient would otherwise stamp notified_at and drop the posts
+    // silently — the one failure mode nobody can notice from an inbox.
+    if (emails.length === 0) {
+      await alertOps("수신자 없음", [
+        `alert_recipients에 active=true인 주소가 없어 ${pending}건이 아무에게도 발송되지 않습니다.`,
+        "Supabase → alert_recipients에서 수신자를 확인해 주세요.",
+      ]);
+    }
     try {
       const sent = await sendDigest(emails, buildDigest(backlogItems, SITE_URL));
       // Record who the mail server actually took, so a recipient silently
@@ -255,6 +284,20 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>, not
         );
         if (sent.rejected.length) errors.push(`email rejected: ${sent.rejected.join(", ")}`);
         for (const f of sent.failed) errors.push(`email ${f.email}: ${f.error}`);
+        // Partial delivery: the people who did get it can't tell anyone is
+        // missing, so the operator has to be told out of band.
+        if (sent.rejected.length || sent.failed.length) {
+          await alertOps(`일부 수신자 발송 실패 (${sent.rejected.length + sent.failed.length}명)`, [
+            `신규 ${pending}건 다이제스트를 ${emails.length}명에게 보냈습니다.`,
+            "",
+            `성공  ${sent.accepted.join(", ") || "없음"}`,
+            `거부  ${sent.rejected.join(", ") || "없음"}`,
+            `실패  ${sent.failed.map((f) => `${f.email} (${f.error})`).join(", ") || "없음"}`,
+            "",
+            "받은 사람에게 중복 발송되지 않도록 이 건은 발송 완료로 처리됩니다.",
+            "누락된 수신자에게는 게시판 링크를 직접 안내해 주세요.",
+          ]);
+        }
         // Nobody was reached — leave notified_at unset so the next run retries.
         // A partial success still stamps, otherwise the recipients who did get
         // it would receive the same digest again.
@@ -272,7 +315,17 @@ async function runPipeline(supabase: ReturnType<typeof createServiceClient>, not
       }
     } catch (e) {
       // Fix 1: do NOT set notified_at on send failure — next run retries.
-      errors.push(`email: ${e instanceof Error ? e.message : String(e)}`);
+      const reason = e instanceof Error ? e.message : String(e);
+      errors.push(`email: ${reason}`);
+      await alertOps("다이제스트 발송 실패", [
+        `신규 ${pending}건이 아무에게도 발송되지 않았습니다.`,
+        "",
+        `원인      ${reason}`,
+        `수신자    ${emails.join(", ") || "없음"}`,
+        `재시도    ${formatDateTimeKst(nextDigestWindow().toISOString())} (다음 발송 창)`,
+        "",
+        "발송 완료로 처리하지 않았으므로 다음 창에서 자동 재시도됩니다.",
+      ]);
     }
   }
 

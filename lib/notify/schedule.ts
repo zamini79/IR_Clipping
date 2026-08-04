@@ -35,6 +35,21 @@ export function isDigestWindow(at: Date | number = Date.now()): boolean {
   return DIGEST_WEEKDAYS.has(weekday) && DIGEST_HOURS_KST.includes(hour);
 }
 
+/**
+ * 다음 발송 창이 열리는 시각. 발송이 실패했을 때 "언제 재시도되는지"를
+ * 알림에 적기 위한 것 — 한 시간씩 앞으로 훑어 첫 창을 찾는다(최대 8일).
+ */
+export function nextDigestWindow(at: Date | number = Date.now()): Date {
+  const HOUR = 3600_000;
+  // 현재 시각이 창 안이더라도 "다음" 창을 원하므로 정시로 내린 뒤 한 시간 전진.
+  const start = new Date(new Date(at).setMinutes(0, 0, 0)).getTime() + HOUR;
+  for (let i = 0; i < 24 * 8; i++) {
+    const t = start + i * HOUR;
+    if (isDigestWindow(t)) return new Date(t);
+  }
+  throw new Error("no digest window in the next 8 days"); // 설정이 비어야만 가능
+}
+
 /** 로그용 표기: "Sat 14시" */
 export function describeKst(at: Date | number = Date.now()): string {
   const { weekday, hour } = kstWeekdayHour(at);

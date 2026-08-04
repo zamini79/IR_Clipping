@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { isDigestWindow, kstWeekdayHour, describeKst, DIGEST_HOURS_KST } from "./schedule";
+import {
+  isDigestWindow, kstWeekdayHour, describeKst, nextDigestWindow, DIGEST_HOURS_KST,
+} from "./schedule";
 
 // 2026-07-27 is a Monday. UTC = KST - 9h.
 const kst = (iso: string) => Date.parse(iso); // callers pass explicit +09:00 offsets
@@ -55,6 +57,28 @@ describe("isDigestWindow", () => {
     expect(isDigestWindow(Date.parse("2026-07-31T09:00:00Z"))).toBe(true);
     // 2026-08-01T00:00Z is Saturday 09:00 KST → no send
     expect(isDigestWindow(Date.parse("2026-08-01T00:00:00Z"))).toBe(false);
+  });
+});
+
+describe("nextDigestWindow", () => {
+  const at = (iso: string) => nextDigestWindow(Date.parse(iso));
+
+  it("finds the next window later the same day", () => {
+    expect(kstWeekdayHour(at("2026-07-28T10:30:00+09:00"))).toEqual({ weekday: "Tue", hour: 12 });
+  });
+
+  it("moves to the next day after the last window", () => {
+    expect(kstWeekdayHour(at("2026-07-28T19:00:00+09:00"))).toEqual({ weekday: "Wed", hour: 9 });
+  });
+
+  it("skips the weekend — a Friday-evening failure retries Monday 09시", () => {
+    expect(kstWeekdayHour(at("2026-07-31T18:10:00+09:00"))).toEqual({ weekday: "Mon", hour: 9 });
+    expect(kstWeekdayHour(at("2026-08-01T11:00:00+09:00"))).toEqual({ weekday: "Mon", hour: 9 });
+  });
+
+  it("returns the following window, never the current one", () => {
+    // 12:00 정각에 실패해도 다음 재시도는 15시여야 한다.
+    expect(kstWeekdayHour(at("2026-07-28T12:00:00+09:00"))).toEqual({ weekday: "Tue", hour: 15 });
   });
 });
 
